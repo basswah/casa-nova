@@ -27,6 +27,7 @@ export type NewSalesOrderItem = Omit<SalesOrderItem, 'id' | 'created_at' | 'line
 export type UpdateSalesOrderItem = Partial<Omit<SalesOrderItem, 'id' | 'created_at'>>;
 
 export interface ReturnItem {
+  item_id: string;
   product_id: string;
   quantity: number;
   unit_price_usd: number;

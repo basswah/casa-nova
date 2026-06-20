@@ -13,24 +13,30 @@ export const UsersTable = ({ users, loading, error, onEdit, onRefresh }: UsersTa
   const { t } = useTranslation();
 
   if (loading) {
-    return <p className="text-brand-muted text-center py-8">{t('common.loading')}</p>;
+    return (
+      <div className="animate-pulse space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-14 bg-brand-surface-hover rounded-xl" />
+        ))}
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-400 mb-3">{error}</p>
-        <button onClick={onRefresh} className="text-sm text-brand-gold hover:underline">{t('common.retry')}</button>
+      <div className="text-center py-12">
+        <p className="text-red-400 mb-4">{error}</p>
+        <button onClick={onRefresh} className="px-4 py-2 bg-brand-dark border border-brand-border rounded-xl text-sm text-brand-gold hover:bg-brand-surface-hover transition-all duration-200">{t('common.retry')}</button>
       </div>
     );
   }
 
   if (users.length === 0) {
-    return <p className="text-brand-muted text-center py-8">{t('users.noUsers')}</p>;
+    return <p className="text-brand-muted text-center py-12">{t('users.noUsers')}</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-brand-border">
+    <div className="overflow-x-auto rounded-xl border border-brand-border">
       <table className="min-w-full divide-y divide-brand-border">
         <thead className="bg-brand-black">
           <tr>

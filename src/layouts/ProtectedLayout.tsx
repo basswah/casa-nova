@@ -26,7 +26,7 @@ export const ProtectedLayout = () => {
   }
 
   if (!user) {
-    return <EmptyState title={t('auth.redirecting')} icon="🔐" />;
+    return <EmptyState title={t('auth.redirecting')} />;
   }
 
   return <Outlet />;

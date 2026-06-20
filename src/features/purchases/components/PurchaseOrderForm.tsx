@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Plus, WarningCircle } from '@phosphor-icons/react';
 import { useSuppliers } from '@/features/purchases/hooks/useSuppliers';
 import { useProducts } from '@/features/inventory/hooks/useProducts';
 import { useCreatePurchaseOrder } from '@/features/purchases/hooks/useCreatePurchaseOrder';
@@ -70,7 +72,7 @@ export const PurchaseOrderForm = ({ open, onClose }: PurchaseOrderFormProps) => 
     setError(null);
     setLoading(true);
     try {
-      const order: { supplier_id: string | null; order_date: string; total_usd: number; total_syp: number; status: string } = {
+      const order = {
         supplier_id: formData.supplier_id,
         order_date: new Date().toISOString().split('T')[0],
         total_usd: 0,
@@ -110,63 +112,93 @@ export const PurchaseOrderForm = ({ open, onClose }: PurchaseOrderFormProps) => 
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--clr-overlay)]">
-      <div className="bg-brand-dark rounded-xl p-6 w-full max-w-2xl relative border border-brand-border shadow-floating max-h-[80vh] overflow-y-auto">
-        <button
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="form-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--clr-overlay)] backdrop-blur-sm p-4"
           onClick={onClose}
-          className="absolute top-3 right-3 text-brand-muted hover:text-brand-gold transition-colors text-xl leading-none"
         >
-          ×
-        </button>
-        <h2 className="mb-6 text-center text-2xl font-bold text-brand-gold tracking-tight">{t('purchases.addOrder')}</h2>
-
-        {error && (
-          <p className="mb-2 p-2 bg-red-900/50 text-red-300 rounded-lg">{error}</p>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <POFormHeader
-            supplierId={formData.supplier_id}
-            suppliers={suppliers}
-            onChange={handleSupplierChange}
-          />
-
-          <>
-            <label className="block text-sm font-medium text-brand-gold mb-1 tracking-wide uppercase">{t('purchases.items')}</label>
-            <div className="space-y-3">
-              {formData.items.map((item, index) => (
-                <POItemRow
-                  key={item._key}
-                  item={item}
-                  index={index}
-                  products={products}
-                  canRemove={formData.items.length > 1}
-                  onItemChange={handleItemChange}
-                  onRemove={handleRemoveItem}
-                />
-              ))}
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="text-sm text-brand-gold hover:text-[var(--clr-gold-hover)] transition-colors font-medium"
-              >
-                + {t('purchases.addItem')}
-              </button>
-            </div>
-          </>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-brand-gold text-brand-black font-semibold rounded-lg hover:bg-[var(--clr-gold-hover)] transition-all duration-200 disabled:opacity-50 shadow-sm active:scale-[0.98]"
+          <motion.div
+            key="form-content"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
+            className="bg-brand-dark/95 backdrop-blur-xl rounded-2xl p-5 md:p-7 w-full max-w-2xl mx-auto relative border border-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.1),0_8px_32px_rgba(0,0,0,0.3)] max-h-[90dvh] md:max-h-[85dvh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            {loading ? t('purchases.creatingOrder') : t('purchases.createOrder')}
-          </button>
-        </form>
-      </div>
-    </div>
+            <button
+              onClick={onClose}
+              type="button"
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-brand-muted hover:text-brand-light hover:bg-brand-surface-hover transition-all duration-150 active:scale-[0.92]"
+            >
+              <X size={16} weight="bold" />
+            </button>
+
+            <h2 className="mb-6 text-xl font-bold text-brand-gold tracking-tight">{t('purchases.addOrder')}</h2>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mb-5 p-3.5 bg-red-900/20 border border-red-800/30 rounded-xl text-red-400 text-sm flex items-start gap-2.5"
+              >
+                <WarningCircle size={18} weight="fill" className="shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </motion.div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <POFormHeader
+                supplierId={formData.supplier_id}
+                suppliers={suppliers}
+                onChange={handleSupplierChange}
+              />
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-brand-gold tracking-wide uppercase">{t('purchases.items')}</label>
+                  <button
+                    type="button"
+                    onClick={handleAddItem}
+                    className="text-xs font-medium text-brand-gold hover:text-[var(--clr-gold-hover)] transition-colors flex items-center gap-1"
+                  >
+                    <Plus size={14} weight="bold" />
+                    {t('purchases.addItem')}
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {formData.items.map((item, index) => (
+                    <POItemRow
+                      key={item._key}
+                      item={item}
+                      index={index}
+                      products={products}
+                      canRemove={formData.items.length > 1}
+                      onItemChange={handleItemChange}
+                      onRemove={handleRemoveItem}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-brand-gold text-brand-black font-semibold rounded-xl hover:bg-[var(--clr-gold-hover)] hover:shadow-[0_0_20px_-4px_rgba(212,175,55,0.25)] transition-all duration-300 ease-out-expo disabled:opacity-40 active:scale-[0.98]"
+              >
+                {loading ? t('purchases.creatingOrder') : t('purchases.createOrder')}
+              </button>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

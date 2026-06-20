@@ -17,7 +17,7 @@ export const LanguageSwitcher = () => {
   return (
     <button
       onClick={toggle}
-      className="px-2 py-1 text-xs font-medium text-brand-muted hover:text-[var(--clr-text)] border border-brand-border rounded-lg transition-all duration-200"
+      className="px-2.5 py-1.5 text-xs font-medium text-brand-muted hover:text-brand-light border border-brand-border rounded-lg transition-all duration-200"
       aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
     >
       {isAr ? 'EN' : 'AR'}

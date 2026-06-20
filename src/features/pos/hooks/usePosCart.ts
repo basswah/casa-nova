@@ -32,12 +32,12 @@ export const usePosCart = () => {
     });
   }, []);
 
-  const updateCustomPrice = useCallback((productId: string, field: 'usd' | 'syp', value: number) => {
+  const updateCustomPrice = useCallback((productId: string, field: 'usd' | 'syp', value: number, updateCurrency: boolean = true) => {
     setItems((prev) =>
       prev.map((item) => {
         if (item.product.id !== productId) return item;
-        if (field === 'usd') return { ...item, customPriceUsd: value };
-        return { ...item, customPriceSyp: value };
+        if (field === 'usd') return { ...item, customPriceUsd: value, ...(updateCurrency ? { customPriceCurrency: 'usd' } : {}) };
+        return { ...item, customPriceSyp: value, ...(updateCurrency ? { customPriceCurrency: 'syp' } : {}) };
       })
     );
   }, []);

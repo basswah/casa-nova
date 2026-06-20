@@ -34,7 +34,20 @@
     "dark": "Dark",
     "shortcuts": "Keyboard Shortcuts",
     "pressEsc": "Press Esc to close",
-    "retry": "Retry"
+    "retry": "Retry",
+    "noResults": "No results found",
+    "tryDifferentSearch": "Try a different search term",
+    "remove": "Remove"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "todaySalesUsd": "Today Sales (USD)",
+    "todaySalesSyp": "Today Sales (SYP)",
+    "todayOrders": "Today Orders",
+    "totalProducts": "Total Products",
+    "lowStock": "Low Stock Items",
+    "recentSales": "Recent Sales",
+    "recentOrders": "Recent Purchase Orders"
   },
   "nav": {
     "inventory": "Inventory",
@@ -43,6 +56,7 @@
     "suppliers": "Suppliers",
     "reports": "Reports",
     "sales": "Sales",
+    "returns": "Returns",
     "settings": "Settings",
     "title": "Casa Nova POS",
     "home": "Home",
@@ -63,7 +77,8 @@
     "costSyp": "Cost (SYP)",
     "stock": "Stock",
     "noProducts": "No products registered yet",
-    "loading": "Loading products..."
+    "loading": "Loading products...",
+    "emptyDescription": "Start by adding your first product to track inventory"
   },
   "pos": {
     "title": "Point of Sale",
@@ -110,7 +125,17 @@
     "filterAll": "All",
     "filterPending": "Pending",
     "filterReceived": "Received",
-    "filterCancelled": "Cancelled"
+    "filterCancelled": "Cancelled",
+    "subtitle": "Manage supplier invoices and incoming stock",
+    "totalOrders": "Total Orders",
+    "thisMonth": "This Month",
+    "totalSuppliers": "Total Suppliers",
+    "emptyDescription": "Create your first purchase order to start tracking inventory",
+    "status": {
+      "pending": "Pending",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    }
   },
   "suppliers": {
     "title": "Suppliers",
@@ -146,6 +171,18 @@
     "today": "Today",
     "thisWeek": "This Week",
     "thisMonth": "This Month"
+  },
+  "categories": {
+    "title": "Categories",
+    "addCategory": "Add Category",
+    "editCategory": "Edit Category",
+    "deleteCategory": "Delete Category",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "manageButton": "Manage Categories",
+    "addNew": "New Category",
+    "categoryName": "Category Name",
+    "noCategories": "No categories",
+    "cannotDelete": "Cannot delete category with existing products"
   },
   "productForm": {
     "title": "Product",
@@ -185,7 +222,30 @@
     "returnMax": "Max: {{max}}",
     "returnReason": "Return Reason",
     "confirmReturn": "Confirm Return",
-    "returnSelected": "Return Selected ({{count}})"
+    "returnSelected": "Return Selected ({{count}})",
+    "returnSuccess": "Return completed successfully",
+    "returnWarning": "Products will be returned to stock and the invoice total will be adjusted.",
+    "returned": "Returned",
+    "allReturned": "All items have been returned.",
+    "showCancelled": "Show returned orders"
+  },
+  "returns": {
+    "title": "Returns History",
+    "records": "Records",
+    "noReturns": "No returns recorded yet",
+    "returnDate": "Return Date",
+    "saleDate": "Sale Date",
+    "invoice": "Invoice",
+    "reason": "Reason",
+    "returns": "Returns",
+    "totalReturns": "Total Returns",
+    "backToSales": "Back to Sales"
+  },
+  "profile": {
+    "title": "Profile",
+    "memberSince": "Member since",
+    "accountDetails": "Account Details",
+    "profile": "Profile"
   },
   "auth": {
     "login": "Login",

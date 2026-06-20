@@ -24,7 +24,7 @@ export const POFilterBar = ({ filterStatus, onChange }: POFilterBarProps) => {
         <button
           key={f}
           onClick={() => onChange(f)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+          className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200 ${
             filterStatus === f ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-brand-muted hover:text-[var(--clr-text)] bg-brand-dark'
           }`}
         >

@@ -1,9 +1,3 @@
-# Environment
-.env
-
-# Supabase
-supabase/.temp/
-
 # Logs
 logs
 *.log
@@ -34,3 +28,8 @@ blob-report/
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.*
+!.env.example

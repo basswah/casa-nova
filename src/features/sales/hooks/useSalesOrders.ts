@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray } from '@/lib/supabase-utils';
+import { fixReturnedOrders } from '@/features/sales/utils/fixReturnedOrders';
 import type { SalesOrder, SalesOrderItem } from '@/types/sales';
 
 export const useSalesOrders = () => {
   return useQuery({
     queryKey: ['sales-orders'],
     queryFn: async () => {
+      await fixReturnedOrders();
       const { data, error } = await supabase
         .from('sales_orders')
         .select('*')

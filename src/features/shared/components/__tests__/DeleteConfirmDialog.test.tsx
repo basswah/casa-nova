@@ -18,7 +18,7 @@ describe('DeleteConfirmDialog', () => {
           title="Delete Item"
           message="Are you sure?"
           onConfirm={vi.fn()}
-          onCancel={vi.fn()}
+          onClose={vi.fn()}
         />
       </I18nextProvider>
     );
@@ -35,7 +35,7 @@ describe('DeleteConfirmDialog', () => {
           title="Delete Item"
           message="Are you sure?"
           onConfirm={vi.fn()}
-          onCancel={vi.fn()}
+          onClose={vi.fn()}
         />
       </I18nextProvider>
     );
@@ -53,7 +53,7 @@ describe('DeleteConfirmDialog', () => {
           title="Delete Item"
           message="Are you sure?"
           onConfirm={onConfirm}
-          onCancel={vi.fn()}
+          onClose={vi.fn()}
         />
       </I18nextProvider>
     );
@@ -64,8 +64,8 @@ describe('DeleteConfirmDialog', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onCancel when cancel button is clicked', async () => {
-    const onCancel = vi.fn();
+  it('calls onClose when cancel button is clicked', async () => {
+    const onClose = vi.fn();
     const user = userEvent.setup();
     render(
       <I18nextProvider i18n={i18n}>
@@ -74,7 +74,7 @@ describe('DeleteConfirmDialog', () => {
           title="Delete Item"
           message="Are you sure?"
           onConfirm={vi.fn()}
-          onCancel={onCancel}
+          onClose={onClose}
         />
       </I18nextProvider>
     );
@@ -82,6 +82,6 @@ describe('DeleteConfirmDialog', () => {
     const cancelButton = screen.getByRole('button', { name: /cancel/i });
     await user.click(cancelButton);
 
-    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

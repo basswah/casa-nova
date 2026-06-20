@@ -31,7 +31,7 @@ export const useDashboard = () => {
           .from('sales_orders')
           .select('*')
           .gte('order_date', today)
-          .lte('order_date', today + 'T23:59:59.999Z'),
+          .lte('order_date', today),
         supabase
           .from('products')
           .select('*', { count: 'exact', head: true }),

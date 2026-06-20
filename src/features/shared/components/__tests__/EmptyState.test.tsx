@@ -15,16 +15,6 @@ describe('EmptyState', () => {
     expect(screen.getByText('No items found')).toBeInTheDocument();
   });
 
-  it('renders with icon', () => {
-    render(
-      <I18nextProvider i18n={i18n}>
-        <EmptyState title="No items" icon="📦" />
-      </I18nextProvider>
-    );
-
-    expect(screen.getByText('📦')).toBeInTheDocument();
-  });
-
   it('renders with action button', () => {
     const onClick = () => {};
     render(

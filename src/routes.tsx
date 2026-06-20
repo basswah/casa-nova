@@ -12,7 +12,9 @@ const PurchaseOrdersPage = lazy(() => import('@/pages/purchases/PurchaseOrdersPa
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const ReportsPage = lazy(() => import('@/pages/reports/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const SalesHistoryPage = lazy(() => import('@/pages/sales/SalesHistoryPage').then(m => ({ default: m.SalesHistoryPage })));
+const ReturnsHistoryPage = lazy(() => import('@/pages/sales/ReturnsHistoryPage').then(m => ({ default: m.ReturnsHistoryPage })));
 const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then(m => ({ default: m.UsersPage })));
+const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
 const PageLoader = () => (
   <div className="max-w-7xl mx-auto space-y-4 p-6">
@@ -39,7 +41,9 @@ export const router = createBrowserRouter([
       { path: 'settings', element: <Suspense fallback={<PageLoader />}><SettingsPage /></Suspense> },
       { path: 'reports', element: <Suspense fallback={<PageLoader />}><ReportsPage /></Suspense> },
       { path: 'sales', element: <Suspense fallback={<PageLoader />}><SalesHistoryPage /></Suspense> },
+      { path: 'returns', element: <Suspense fallback={<PageLoader />}><ReturnsHistoryPage /></Suspense> },
       { path: 'admin/users', element: <Suspense fallback={<PageLoader />}><UsersPage /></Suspense> },
+      { path: 'profile', element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
     ],
   },
 ]);

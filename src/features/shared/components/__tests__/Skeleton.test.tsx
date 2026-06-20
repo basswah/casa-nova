@@ -30,13 +30,13 @@ describe('SkeletonCard', () => {
 describe('SkeletonTable', () => {
   it('renders default 4 rows', () => {
     const { container } = render(<SkeletonTable />);
-    const rows = container.querySelectorAll('.border-t');
+    const rows = container.querySelectorAll('.rounded-xl.border');
     expect(rows.length).toBe(4);
   });
 
   it('renders custom row count', () => {
     const { container } = render(<SkeletonTable rows={2} />);
-    const rows = container.querySelectorAll('.border-t');
+    const rows = container.querySelectorAll('.rounded-xl.border');
     expect(rows.length).toBe(2);
   });
 });

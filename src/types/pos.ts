@@ -14,6 +14,7 @@ export interface CartItem {
   quantity: number;
   customPriceUsd?: number;
   customPriceSyp?: number;
+  customPriceCurrency?: 'usd' | 'syp';
 }
 
 export interface CheckoutPayload {

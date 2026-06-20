@@ -6,7 +6,7 @@ export const SuppliersPage = () => {
   const { t } = useTranslation();
   useEffect(() => { document.title = `${t('nav.title')} — ${t('suppliers.title')}`; }, [t]);
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="min-h-[100dvh] max-w-7xl mx-auto">
       <SupplierList />
     </div>
   );

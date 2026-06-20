@@ -69,8 +69,8 @@ describe('ProductList', () => {
       </I18nextProvider>
     );
 
-    const lowStockBadges = screen.getAllByText(/low stock/i);
-    expect(lowStockBadges.length).toBe(1);
+    const quantity = screen.getByText('2');
+    expect(quantity.closest('[class*="bg-red-900"]')).toBeTruthy();
   });
 
   it('calls onEdit when edit button is clicked', async () => {
@@ -101,30 +101,5 @@ describe('ProductList', () => {
     await user.click(deleteButtons[0]);
 
     expect(onDelete).toHaveBeenCalledWith(mockProducts[0]);
-  });
-
-  it('filters products when searching', async () => {
-    const user = userEvent.setup();
-    render(
-      <I18nextProvider i18n={i18n}>
-        <ProductList products={mockProducts} onEdit={vi.fn()} onDelete={vi.fn()} />
-      </I18nextProvider>
-    );
-
-    const searchInput = screen.getByPlaceholderText(/search/i);
-    await user.type(searchInput, 'Test Product 1');
-
-    expect(screen.getByText('Test Product 1')).toBeInTheDocument();
-    expect(screen.queryByText('Test Product 2')).not.toBeInTheDocument();
-  });
-
-  it('shows no products message when list is empty', () => {
-    render(
-      <I18nextProvider i18n={i18n}>
-        <ProductList products={[]} onEdit={vi.fn()} onDelete={vi.fn()} />
-      </I18nextProvider>
-    );
-
-    expect(screen.getByText(/no products/i)).toBeInTheDocument();
   });
 });

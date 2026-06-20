@@ -34,7 +34,20 @@
     "dark": "داكن",
     "shortcuts": "اختصارات لوحة المفاتيح",
     "pressEsc": "اضغط Esc للإغلاق",
-    "retry": "إعادة المحاولة"
+    "retry": "إعادة المحاولة",
+    "noResults": "لا توجد نتائج",
+    "tryDifferentSearch": "جرّب مصطلح بحث مختلف",
+    "remove": "إزالة"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "todaySalesUsd": "مبيعات اليوم (دولار)",
+    "todaySalesSyp": "مبيعات اليوم (ل.س)",
+    "todayOrders": "طلبات اليوم",
+    "totalProducts": "إجمالي المنتجات",
+    "lowStock": "عناصر المخزون المنخفض",
+    "recentSales": "آخر المبيعات",
+    "recentOrders": "آخر أوامر الشراء"
   },
   "nav": {
     "inventory": "المخزون",
@@ -43,12 +56,13 @@
     "suppliers": "الموردين",
     "reports": "التقارير",
     "sales": "المبيعات",
+    "returns": "المرتجعات",
     "settings": "الإعدادات",
     "title": "كازا نوفا نقاط البيع",
     "home": "الرئيسية",
     "users": "المستخدمين"
   },
-  "inventory": {
+"inventory": {
     "title": "المخزون",
     "addProduct": "+ إضافة منتج",
     "editProduct": "تعديل المنتج",
@@ -63,7 +77,8 @@
     "costSyp": "الكلفة (ل.س)",
     "stock": "المخزون",
     "noProducts": "لا توجد منتجات مسجلة بعد",
-    "loading": "جارٍ تحميل المنتجات..."
+    "loading": "جارٍ تحميل المنتجات...",
+    "emptyDescription": "ابدأ بإضافة أول منتج لتتبع المخزون"
   },
   "pos": {
     "title": "نقطة البيع",
@@ -110,7 +125,17 @@
     "filterAll": "الكل",
     "filterPending": "معلق",
     "filterReceived": "مستلم",
-    "filterCancelled": "ملغي"
+    "filterCancelled": "ملغي",
+    "subtitle": "إدارة فواتير الموردين والمخزون الوارد",
+    "totalOrders": "إجمالي الطلبات",
+    "thisMonth": "هذا الشهر",
+    "totalSuppliers": "إجمالي الموردين",
+    "emptyDescription": "أنشئ أول أمر شراء لبدء تتبع المخزون",
+    "status": {
+      "pending": "معلق",
+      "received": "مستلم",
+      "cancelled": "ملغي"
+    }
   },
   "suppliers": {
     "title": "الموردين",
@@ -146,6 +171,18 @@
     "today": "اليوم",
     "thisWeek": "هذا الأسبوع",
     "thisMonth": "هذا الشهر"
+  },
+  "categories": {
+    "title": "التصنيفات",
+    "addCategory": "إضافة تصنيف",
+    "editCategory": "تعديل التصنيف",
+    "deleteCategory": "حذف التصنيف",
+    "deleteConfirm": "هل أنت متأكد من حذف \"{{name}}\"? لا يمكن التراجع عن هذا الإجراء.",
+    "manageButton": "إدارة التصنيفات",
+    "addNew": "تصنيف جديد",
+    "categoryName": "اسم التصنيف",
+    "noCategories": "لا توجد تصنيفات",
+    "cannotDelete": "لا يمكن حذف تصنيف يحتوي على منتجات"
   },
   "productForm": {
     "title": "المنتج",
@@ -185,7 +222,30 @@
     "returnMax": "الحد الأقصى: {{max}}",
     "returnReason": "سبب الإرجاع",
     "confirmReturn": "تأكيد الإرجاع",
-    "returnSelected": "إرجاع المحدد ({{count}})"
+    "returnSelected": "إرجاع المحدد ({{count}})",
+    "returnSuccess": "تم الإرجاع بنجاح",
+    "returnWarning": "سيتم إرجاع المنتجات للمخزون وتعديل إجمالي الفاتورة.",
+    "returned": "تم الإرجاع",
+    "allReturned": "تم إرجاع جميع المنتجات.",
+    "showCancelled": "إظهار المرتجعات"
+  },
+  "returns": {
+    "title": "سجل المرتجعات",
+    "records": "سجل",
+    "noReturns": "لا توجد مرتجعات مسجلة",
+    "returnDate": "تاريخ الإرجاع",
+    "saleDate": "تاريخ البيع",
+    "invoice": "الفاتورة",
+    "reason": "السبب",
+    "returns": "المرتجعات",
+    "totalReturns": "إجمالي المرتجعات",
+    "backToSales": "العودة إلى المبيعات"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "memberSince": "عضو منذ",
+    "accountDetails": "تفاصيل الحساب",
+    "profile": "الملف الشخصي"
   },
   "auth": {
     "login": "تسجيل الدخول",

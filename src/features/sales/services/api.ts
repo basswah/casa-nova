@@ -75,18 +75,28 @@ export const completeSale = async (
   }
 
   for (const item of items) {
-    const { data: product } = await supabase
+    const { data: product, error: fetchError } = await supabase
       .from('products')
       .select('quantity')
       .eq('id', item.product_id)
       .single();
 
-    if (product) {
-      const newQty = product.quantity - item.quantity;
-      await supabase
-        .from('products')
-        .update({ quantity: newQty })
-        .eq('id', item.product_id);
+    if (fetchError || !product) {
+      return { success: false, error: `Product ${item.product_id} not found` };
+    }
+
+    const newQty = product.quantity - item.quantity;
+    if (newQty < 0) {
+      return { success: false, error: `Insufficient stock for product ${item.product_id}` };
+    }
+
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({ quantity: newQty })
+      .eq('id', item.product_id);
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
     }
   }
 

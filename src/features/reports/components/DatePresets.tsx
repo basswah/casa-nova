@@ -36,15 +36,18 @@ export const DatePresets = ({ value, onChange }: DatePresetsProps) => {
   const isActive = (p: DateRange) => value.start === p.start && value.end === p.end;
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl bg-brand-dark/60 border border-brand-border/40 backdrop-blur-sm w-full sm:w-auto">
       {presets.map((preset) => {
         const range = preset.get();
+        const active = isActive(range);
         return (
           <button
             key={preset.label}
             onClick={() => onChange(range)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-              isActive(range) ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-brand-muted hover:text-[var(--clr-text)] bg-brand-dark'
+            className={`relative px-2.5 sm:px-3.5 py-1.5 text-sm font-medium rounded-lg transition-all duration-300 ease-out-expo active:scale-[0.96] ${
+              active
+                ? 'bg-brand-gold/10 text-brand-gold shadow-[inset_0_1px_0_rgba(201,160,60,0.15)]'
+                : 'text-brand-muted hover:text-brand-light'
             }`}
           >
             {preset.label}
