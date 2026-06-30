@@ -33,3 +33,30 @@ export type UpdatePurchaseOrder = Partial<Omit<PurchaseOrder, 'id' | 'created_at
 
 export type NewPurchaseOrderItem = Omit<PurchaseOrderItem, 'id' | 'created_at'>;
 export type UpdatePurchaseOrderItem = Partial<Omit<PurchaseOrderItem, 'id' | 'created_at'>>;
+
+export interface PurchaseNeed {
+  id: string;
+  name: string;
+  quantity: number;
+  notes: string | null;
+  status: 'pending' | 'ordered';
+  created_by: string | null;
+  created_at: string;
+}
+
+export type NewPurchaseNeed = Omit<PurchaseNeed, 'id' | 'created_at'>;
+export type UpdatePurchaseNeed = Partial<Omit<PurchaseNeed, 'id' | 'created_at'>>;
+
+export interface PurchaseReturn {
+  id: string;
+  product_id: string | null;
+  po_id: string | null;
+  quantity: number;
+  unit_price_usd: number;
+  unit_price_syp: number;
+  reason: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export type NewPurchaseReturn = Omit<PurchaseReturn, 'id' | 'created_at'>;

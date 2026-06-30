@@ -345,6 +345,85 @@ export interface Database {
           },
         ];
       };
+      purchase_needs: {
+        Row: {
+          id: string;
+          name: string;
+          quantity: number;
+          notes: string | null;
+          status: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          quantity?: number;
+          notes?: string | null;
+          status?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          quantity?: number;
+          notes?: string | null;
+          status?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      purchase_returns: {
+        Row: {
+          id: string;
+          product_id: string | null;
+          po_id: string | null;
+          quantity: number;
+          unit_price_usd: number;
+          unit_price_syp: number;
+          reason: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          product_id?: string | null;
+          po_id?: string | null;
+          quantity: number;
+          unit_price_usd?: number;
+          unit_price_syp?: number;
+          reason?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          product_id?: string | null;
+          po_id?: string | null;
+          quantity?: number;
+          unit_price_usd?: number;
+          unit_price_syp?: number;
+          reason?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "purchase_returns_product_id_fkey";
+            columns: ["product_id"];
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_returns_po_id_fkey";
+            columns: ["po_id"];
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {

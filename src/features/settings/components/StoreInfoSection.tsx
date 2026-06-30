@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettings, useUpdateStoreName, useUpdateStoreAddress } from '@/features/settings/hooks/useSettingsQuery';
+import { useToastStore } from '@/features/shared/store/toastSlice';
 
 export const StoreInfoSection = () => {
   const { t } = useTranslation();
   const { data: settings } = useSettings();
   const updateStoreName = useUpdateStoreName();
   const updateStoreAddress = useUpdateStoreAddress();
+  const addToast = useToastStore((s) => s.addToast);
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -22,9 +25,15 @@ export const StoreInfoSection = () => {
 
   const handleSave = async () => {
     setSaving(true);
+    setError(null);
     try {
       await updateStoreName.mutateAsync(name);
       await updateStoreAddress.mutateAsync(address);
+      addToast(t('settings.storeInfoUpdated', 'Store info updated successfully'), 'success');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('common.error');
+      setError(msg);
+      addToast(msg, 'error');
     } finally {
       setSaving(false);
     }
@@ -55,6 +64,9 @@ export const StoreInfoSection = () => {
           />
         </div>
       </div>
+      {error && (
+        <p className="text-red-400/80 text-xs mb-3">{error}</p>
+      )}
       <button
         onClick={handleSave}
         disabled={saving}
