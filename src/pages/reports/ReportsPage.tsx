@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Receipt, ChartBar, ArrowRight } from '@phosphor-icons/react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkle, ArrowRight, ArrowClockwise } from '@phosphor-icons/react';
 import { useSalesSummary, useProfitSummary, useTopProducts } from '@/features/reports/hooks/useReports';
 import { DatePresets } from '@/features/reports/components/DatePresets';
 import { SalesSummaryCard } from '@/features/reports/components/SalesSummaryCard';
@@ -11,21 +11,20 @@ import type { DateRange } from '@/types/reports';
 
 const today = () => new Date().toISOString().split('T')[0];
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
+const easeOutExpo = [0.16, 1, 0.3, 1] as const;
+
+const stagger = {
+  animate: { transition: { staggerChildren: 0.06 } },
 };
 
-const staggerItem = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
-  },
+const fadeSlideUp = {
+  initial: { opacity: 0, y: 20, filter: 'blur(8px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.5, ease: easeOutExpo } },
+};
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.92 },
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: easeOutExpo } },
 };
 
 export const ReportsPage = () => {
@@ -34,86 +33,124 @@ export const ReportsPage = () => {
 
   useEffect(() => { document.title = `${t('nav.title')} — ${t('reports.title')}`; }, [t]);
 
-  const { data: salesData, isLoading: salesLoading } = useSalesSummary(range);
-  const { data: profitData, isLoading: profitLoading } = useProfitSummary(range);
-  const { data: topProducts, isLoading: topLoading } = useTopProducts(range);
+  const { data: salesData, isLoading: salesLoading, isFetching: salesFetching } = useSalesSummary(range);
+  const { data: profitData, isLoading: profitLoading, isFetching: profitFetching } = useProfitSummary(range);
+  const { data: topProducts, isLoading: topLoading, isFetching: topFetching } = useTopProducts(range);
+
+  const isAnyLoading = salesLoading || profitLoading || topLoading;
+  const isAnyFetching = salesFetching || profitFetching || topFetching;
 
   return (
-    <div className="min-h-[100dvh] max-w-7xl mx-auto space-y-8 md:space-y-12">
-      {/* Split Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="max-w-full sm:max-w-lg">
-          <h1 className="text-2xl md:text-3xl font-bold text-brand-gold tracking-tight">
-            {t('reports.title')}
-          </h1>
-          <p className="text-sm text-brand-muted mt-1.5 leading-relaxed">
-            {t('reports.subtitle', 'Real-time sales performance and insights')}
-          </p>
-        </div>
-        <DatePresets value={range} onChange={setRange} />
+    <div className="min-h-[100dvh] relative overflow-hidden">
+      {/* Ambient background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: -1 }}>
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[var(--clr-gold)]/[0.04] blur-[120px]" />
+        <div className="absolute bottom-[-15%] right-[-5%] w-[400px] h-[400px] rounded-full bg-blue-500/[0.03] blur-[100px]" />
       </div>
 
-      {/* Asymmetric Bento Metrics */}
-      <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:[grid-template-columns:1.6fr_1fr_1fr] gap-4 md:gap-5"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={staggerItem}>
-          <SalesSummaryCard data={salesData} loading={salesLoading} />
-        </motion.div>
-        <motion.div variants={staggerItem}>
-          <ProfitSummaryCard data={profitData} loading={profitLoading} />
-        </motion.div>
-        <motion.div variants={staggerItem}>
-          <div className="group rounded-xl border border-brand-border/60 bg-brand-dark p-5 md:p-6 transition-all duration-300 ease-out-expo hover:border-brand-gold/20 hover:shadow-[var(--shadow-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-            <div className="flex items-start gap-4">
-              <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center bg-brand-surface-hover text-brand-light">
-                <Receipt size={20} weight="duotone" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-brand-muted/70 uppercase tracking-widest">
-                  {t('reports.transactions')}
-                </p>
-                {salesLoading ? (
-                  <div className="mt-1 h-7 w-20 bg-brand-surface-hover rounded-md animate-pulse" />
-                ) : (
-                  <p className="text-2xl font-bold font-mono mt-1 leading-none text-brand-light">
-                    {salesData?.transactionCount ?? '-'}
-                  </p>
-                )}
-                <p className="text-[11px] text-brand-muted/50 mt-1.5">
-                  {t('reports.inSelectedPeriod', 'In selected period')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
+      <div className="relative px-5 md:px-8 lg:px-12 pt-10 md:pt-16 pb-16 md:pb-24 max-w-[1600px] mx-auto">
+        {/* Hero Header */}
+        <motion.div
+          initial="initial"
+          animate="animate"
+          className="mb-10 md:mb-14"
+        >
+          <motion.div variants={fadeSlideUp} className="flex items-center gap-2 mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--clr-gold)]/10 border border-[var(--clr-gold)]/20 text-[var(--clr-gold)] text-[11px] font-medium tracking-wide">
+              <Sparkle size={12} weight="fill" />
+              {t('reports.title')}
+            </span>
+          </motion.div>
 
-      {/* Top Products Section */}
-      <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-gold/10 flex items-center justify-center shrink-0">
-              <ChartBar size={16} weight="bold" className="text-brand-gold" />
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div>
+                <motion.h1
+                  variants={fadeSlideUp}
+                  className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-brand-light tracking-tight leading-[1.15] mb-3"
+                  style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}
+                >
+                  {t('reports.title')}
+                </motion.h1>
+
+                <motion.p
+                  variants={fadeSlideUp}
+                  className="text-sm md:text-base text-brand-muted/60 max-w-lg leading-relaxed"
+                >
+                  {t('reports.subtitle', 'Real-time sales performance and insights')}
+                </motion.p>
+              </div>
+
+              {/* Refresh indicator */}
+              <AnimatePresence>
+                {isAnyFetching && !isAnyLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="shrink-0"
+                  >
+                    <ArrowClockwise size={16} weight="bold" className="text-brand-gold/60 animate-spin" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div>
-              <h2 className="text-sm font-semibold text-brand-light tracking-tight">
-                {t('reports.topProducts')}
-              </h2>
-              <p className="text-[11px] text-brand-muted/60">
-                {t('reports.topProductsDesc', 'Best performers this period')}
-              </p>
+
+            <motion.div variants={fadeSlideUp}>
+              <DatePresets value={range} onChange={setRange} />
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Bento Metrics — 3 focused cards */}
+        <motion.div
+          variants={stagger}
+          initial="initial"
+          animate="animate"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-10 md:mb-14"
+        >
+          <motion.div variants={scaleIn}>
+            <SalesSummaryCard data={salesData} loading={salesLoading} />
+          </motion.div>
+          <motion.div variants={scaleIn}>
+            <ProfitSummaryCard data={profitData} loading={profitLoading} />
+          </motion.div>
+          <motion.div variants={scaleIn}>
+            <TopProductsTable data={topProducts} loading={topLoading} compact />
+          </motion.div>
+        </motion.div>
+
+        {/* Top Products Section */}
+        <motion.div
+          variants={stagger}
+          initial="initial"
+          animate="animate"
+          className="space-y-5"
+        >
+          <motion.div variants={fadeSlideUp} className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[var(--clr-gold)]/10 border border-[var(--clr-gold)]/20 flex items-center justify-center shrink-0">
+                <Sparkle size={16} weight="bold" className="text-brand-gold" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-brand-light tracking-tight" style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
+                  {t('reports.topProducts')}
+                </h2>
+                <p className="text-[11px] text-brand-muted/50">
+                  {t('reports.topProductsDesc', 'Best performers this period')}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-brand-muted/50 shrink-0">
-            {t('reports.rankedByRevenue', 'Ranked by revenue')}
-            <ArrowRight size={12} weight="bold" />
-          </div>
-        </div>
-        <TopProductsTable data={topProducts} loading={topLoading} />
+            <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-brand-muted/40 shrink-0">
+              {t('reports.rankedByRevenue', 'Ranked by revenue')}
+              <ArrowRight size={12} weight="bold" />
+            </div>
+          </motion.div>
+
+          <motion.div variants={fadeSlideUp}>
+            <TopProductsTable data={topProducts} loading={topLoading} />
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

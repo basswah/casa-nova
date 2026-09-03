@@ -59,6 +59,8 @@ export const NewProductModal = ({ open, onClose, onCreated, exchangeRate }: NewP
         cost_usd: parseFloat(costUsd) || 0,
         cost_syp: costSyp,
         quantity: 0,
+        is_consignment: false,
+        supplier_id: null,
       });
 
       onCreated({ id: product.id, name: product.name });

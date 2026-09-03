@@ -9,8 +9,6 @@ const mockProduct: PosProduct = {
   sku: 'SKU-001',
   price_usd: 25.00,
   price_syp: 312500,
-  cost_usd: 15.00,
-  cost_syp: 187500,
   quantity: 10,
 };
 
@@ -20,8 +18,6 @@ const mockProduct2: PosProduct = {
   sku: 'SKU-002',
   price_usd: 50.00,
   price_syp: 625000,
-  cost_usd: 30.00,
-  cost_syp: 375000,
   quantity: 5,
 };
 

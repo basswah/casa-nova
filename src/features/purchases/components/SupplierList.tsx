@@ -1,30 +1,50 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, MagnifyingGlass, Users, WarningCircle, PencilSimple, Trash } from '@phosphor-icons/react';
+import {
+  Plus,
+  MagnifyingGlass,
+  Users,
+  WarningCircle,
+  PencilSimple,
+  Trash,
+  Package,
+  Phone,
+} from '@phosphor-icons/react';
 import { useSuppliers, useDeleteSupplier } from '@/features/purchases/hooks/useSuppliers';
 import { SupplierForm } from '@/features/purchases/components/SupplierForm';
-import { SupplierTable } from '@/features/purchases/components/suppliers/SupplierTable';
 import { DeleteConfirmDialog } from '@/features/shared/components/DeleteConfirmDialog';
-import { EmptyState } from '@/features/shared/components/EmptyState';
 import type { Supplier } from '@/types/purchases';
 
+const easeOutExpo = [0.16, 1, 0.3, 1] as const;
+
 const stagger = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
+  animate: { transition: { staggerChildren: 0.06 } },
 };
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
-  },
+const fadeSlideUp = {
+  initial: { opacity: 0, y: 20, filter: 'blur(6px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.45, ease: easeOutExpo } },
 };
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.92 },
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: easeOutExpo } },
+};
+
+const cardVariant = {
+  initial: { opacity: 0, y: 16, filter: 'blur(4px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.4, ease: easeOutExpo } },
+};
+
+const AVATAR_COLORS = [
+  'from-amber-500/20 to-orange-500/10',
+  'from-blue-500/20 to-cyan-500/10',
+  'from-purple-500/20 to-pink-500/10',
+  'from-emerald-500/20 to-teal-500/10',
+  'from-rose-500/20 to-red-500/10',
+  'from-indigo-500/20 to-violet-500/10',
+];
 
 export const SupplierList = () => {
   const { t } = useTranslation();
@@ -36,12 +56,17 @@ export const SupplierList = () => {
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState('');
 
-  const filteredSuppliers = search
-    ? suppliers.filter((s) =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        (s.contact_info?.toLowerCase() || '').includes(search.toLowerCase())
-      )
-    : suppliers;
+  const filteredSuppliers = useMemo(() => {
+    if (!search) return suppliers;
+    const q = search.toLowerCase();
+    return suppliers.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        (s.contact_info?.toLowerCase() || '').includes(q)
+    );
+  }, [suppliers, search]);
+
+  const getAvatarColor = (index: number) => AVATAR_COLORS[index % AVATAR_COLORS.length];
 
   const handleAdd = () => {
     setEditingSupplier(null);
@@ -74,70 +99,119 @@ export const SupplierList = () => {
   };
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      {/* Split Header */}
+    <div className="space-y-8 md:space-y-10">
+      {/* Bento Metrics + Search Bar */}
       <motion.div
-        className="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
         variants={stagger}
-        initial="hidden"
-        animate="visible"
+        initial="initial"
+        animate="animate"
+        className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-end justify-between"
       >
-        <motion.div variants={fadeUp} className="max-w-lg">
-          <h1 className="text-2xl md:text-3xl font-bold text-brand-gold tracking-tight">{t('suppliers.title')}</h1>
-          <p className="text-sm text-brand-muted mt-1.5 leading-relaxed">
-            {t('suppliers.subtitle', 'Manage your vendor partners and supplier information')}
-          </p>
+        {/* Metrics */}
+        <motion.div variants={fadeSlideUp} className="flex gap-3 md:gap-4 flex-1">
+          {[
+            {
+              label: t('suppliers.title'),
+              value: suppliers.length,
+              icon: Users,
+              gradient: 'from-amber-500/10 to-orange-500/5',
+              iconColor: 'text-amber-400/80',
+            },
+            {
+              label: t('suppliers.contactInfo'),
+              value: suppliers.filter((s) => s.contact_info).length,
+              icon: Phone,
+              gradient: 'from-blue-500/10 to-cyan-500/5',
+              iconColor: 'text-blue-400/80',
+            },
+            {
+              label: t('common.active', { defaultValue: 'Active' }),
+              value: suppliers.length,
+              icon: Package,
+              gradient: 'from-emerald-500/10 to-teal-500/5',
+              iconColor: 'text-emerald-400/80',
+            },
+          ].map((m, i) => (
+            <motion.div
+              key={i}
+              variants={scaleIn}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className={`flex-1 min-w-0 rounded-2xl bg-gradient-to-br ${m.gradient} border border-brand-border/20 p-4 md:p-5 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] md:text-[11px] font-medium text-brand-muted/60 uppercase tracking-wider truncate">
+                  {m.label}
+                </span>
+                <div className={`w-8 h-8 rounded-xl bg-brand-dark/40 backdrop-blur-sm flex items-center justify-center ${m.iconColor} shrink-0`}>
+                  <m.icon size={14} weight="duotone" />
+                </div>
+              </div>
+              <p className="text-xl md:text-2xl font-bold text-brand-light font-mono tracking-tight">
+                {m.value}
+              </p>
+            </motion.div>
+          ))}
         </motion.div>
-        <motion.div variants={fadeUp}>
-          <button
+
+        {/* Search + Add Button */}
+        <motion.div variants={fadeSlideUp} className="flex gap-3 items-stretch lg:items-center">
+          <div className="relative flex-1 lg:flex-none lg:w-72">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted/30">
+              <MagnifyingGlass size={16} weight="bold" />
+            </div>
+            <label htmlFor="sup-search" className="sr-only">{t('common.search')}</label>
+            <input
+              id="sup-search"
+              type="text"
+              placeholder={t('common.search')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-brand-dark/60 backdrop-blur-xl border border-brand-border/30 rounded-2xl text-sm text-brand-light placeholder-brand-muted/30 hover:border-brand-gold/20 focus:outline-none focus:ring-2 focus:ring-brand-gold/15 focus:border-brand-gold/40 transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_8px_-2px_rgba(0,0,0,0.15)]"
+              style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}
+            />
+          </div>
+
+          <motion.button
             onClick={handleAdd}
-            className="group inline-flex items-center gap-2.5 px-5 py-2.5 bg-brand-gold text-brand-black font-semibold rounded-xl hover:bg-[var(--clr-gold-hover)] hover:shadow-[0_0_24px_-4px_rgba(212,175,55,0.3)] transition-all duration-300 ease-out-expo active:scale-[0.97] shrink-0"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center gap-2.5 px-5 py-3 bg-[var(--clr-gold)] text-brand-black font-semibold rounded-2xl hover:shadow-[0_0_24px_-4px_rgba(212,175,55,0.3)] transition-all duration-300 shrink-0"
+            style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}
           >
-            <Plus size={18} weight="bold" className="group-hover:rotate-90 transition-transform duration-300 ease-out-expo" />
-            {t('suppliers.addSupplier')}
-          </button>
+            <Plus size={18} weight="bold" />
+            <span className="hidden sm:inline">{t('suppliers.addSupplier')}</span>
+          </motion.button>
         </motion.div>
       </motion.div>
 
-      {/* Summary + Search */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex w-full sm:inline-flex sm:w-auto items-center gap-3 px-4 py-2 bg-brand-dark rounded-xl border border-brand-border/60">
-          <div className="w-9 h-9 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold">
-            <Users size={18} weight="duotone" />
-          </div>
-          <div>
-            <p className="text-xs text-brand-muted/70 uppercase tracking-widest">{t('suppliers.title')}</p>
-            <p className="text-lg font-bold font-mono text-brand-light leading-none mt-0.5">{suppliers.length}</p>
-          </div>
-        </div>
-
-        <div className="relative w-full sm:max-w-xs">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-muted/40">
-            <MagnifyingGlass size={16} />
-          </div>
-          <label htmlFor="sup-search" className="sr-only">{t('common.search')}</label>
-          <input
-            id="sup-search"
-            type="text"
-            placeholder={t('common.search')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-brand-dark border border-brand-border rounded-xl text-sm text-brand-light placeholder-brand-muted/40 hover:border-brand-gold/20 focus:outline-none focus:ring-2 focus:ring-brand-gold/25 focus:border-brand-gold/60 transition-all duration-300 ease-out-expo"
-          />
-        </div>
-      </div>
-
-      {/* Loading */}
+      {/* Loading Skeleton */}
       {isLoading && (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
+        <motion.div
+          variants={stagger}
+          initial="initial"
+          animate="animate"
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <motion.div
               key={i}
-              className="h-14 bg-gradient-to-r from-brand-surface-hover via-brand-dark to-brand-surface-hover rounded-xl bg-[length:200%_100%] animate-[shimmer_2s_ease-in-out_infinite]"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            />
+              variants={fadeSlideUp}
+              className="h-44 rounded-2xl bg-brand-dark/60 border border-brand-border/30 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-brand-border/20 animate-pulse" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-24 rounded-lg bg-brand-border/20 animate-pulse" />
+                  <div className="h-3 w-16 rounded-lg bg-brand-border/15 animate-pulse" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 w-32 rounded-lg bg-brand-border/15 animate-pulse" />
+                <div className="h-3 w-20 rounded-lg bg-brand-border/10 animate-pulse" />
+              </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Error */}
@@ -145,94 +219,111 @@ export const SupplierList = () => {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-red-900/20 border border-red-800/30 rounded-xl text-red-400 text-sm flex items-center gap-2.5"
+          className="p-4 bg-red-900/15 border border-red-800/20 rounded-2xl text-red-400/80 text-sm flex items-center gap-2.5"
         >
           <WarningCircle size={18} weight="fill" className="shrink-0" />
           {error.message}
         </motion.div>
       )}
 
-      {/* Empty */}
+      {/* Empty State */}
       {!isLoading && !error && filteredSuppliers.length === 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: easeOutExpo }}
+          className="flex flex-col items-center justify-center py-20 px-4 text-center"
         >
-          <EmptyState
-            title={search ? t('common.noResults') : t('suppliers.noSuppliers')}
-            description={search ? t('common.tryDifferentSearch') : t('suppliers.emptyDescription', 'Start by adding your first supplier to begin tracking purchase orders')}
-            action={!search ? { label: t('suppliers.addSupplier'), onClick: handleAdd } : undefined}
-          />
+          <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-brand-dark/60 border border-brand-border/30 flex items-center justify-center">
+            <Users size={36} weight="duotone" className="text-brand-muted/25" />
+          </div>
+          <h3 className="text-base font-semibold text-brand-muted/70 mb-2" style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
+            {search ? t('common.noResults') : t('suppliers.noSuppliers')}
+          </h3>
+          <p className="text-sm text-brand-muted/45 max-w-sm leading-relaxed mb-6">
+            {search
+              ? t('common.tryDifferentSearch')
+              : t('suppliers.emptyDescription', 'Start by adding your first supplier to begin tracking purchase orders')}
+          </p>
+          {!search && (
+            <motion.button
+              onClick={handleAdd}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center gap-2.5 px-6 py-3 bg-[var(--clr-gold)] text-brand-black font-semibold rounded-2xl hover:shadow-[0_0_24px_-4px_rgba(212,175,55,0.3)] transition-all duration-300"
+              style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}
+            >
+              <Plus size={18} weight="bold" />
+              {t('suppliers.addSupplier')}
+            </motion.button>
+          )}
         </motion.div>
       )}
 
-      {/* Table */}
+      {/* Supplier Cards Grid */}
       <AnimatePresence mode="wait">
         {!isLoading && filteredSuppliers.length > 0 && (
           <motion.div
-            key={`sup-${search}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <SupplierTable
-              suppliers={filteredSuppliers}
-              onEdit={handleEdit}
-              onDelete={handleDeleteRequest}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Mobile card list */}
-      <AnimatePresence mode="wait">
-        {!isLoading && filteredSuppliers.length > 0 && (
-          <motion.div
-            key={`sup-mobile-${search}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="lg:hidden space-y-3"
+            key={`sup-grid-${search}`}
+            variants={stagger}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
           >
             {filteredSuppliers.map((supplier, index) => (
               <motion.div
                 key={supplier.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: index * 0.04 }}
-                className="bg-brand-dark rounded-xl border border-brand-border/60 p-4 hover:border-brand-gold/20 hover:shadow-[var(--shadow-hover)] transition-all duration-300 ease-out-expo"
+                variants={cardVariant}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="group relative bg-brand-dark/50 backdrop-blur-sm border border-brand-border/25 rounded-2xl p-5 transition-all duration-300 hover:border-brand-gold/25 hover:shadow-[0_8px_32px_-8px_rgba(212,175,55,0.1),inset_0_1px_0_rgba(255,255,255,0.06)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
               >
-                <div className="flex items-start justify-between mb-3">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-lg bg-brand-surface-hover flex items-center justify-center text-sm font-semibold text-brand-muted shrink-0">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getAvatarColor(index)} border border-brand-border/15 flex items-center justify-center text-lg font-bold text-brand-light/80 shrink-0`} style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
                       {supplier.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-brand-light truncate">{supplier.name}</p>
-                      <p className="text-xs text-brand-muted/60 font-mono mt-0.5">{supplier.id.slice(0, 8)}</p>
+                      <h3 className="text-sm font-semibold text-brand-light/90 truncate leading-snug" style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
+                        {supplier.name}
+                      </h3>
+                      <p className="text-[10px] font-mono text-brand-muted/35 mt-0.5 tracking-tight">
+                        {supplier.id.slice(0, 8)}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <div className="text-xs text-brand-muted mb-3">
-                  {supplier.contact_info || '-'}
+
+                {/* Contact Info */}
+                <div className="mb-4 p-3 rounded-xl bg-brand-black/20 border border-brand-border/10">
+                  <div className="flex items-center gap-2">
+                    <Phone size={12} weight="duotone" className="text-brand-muted/40 shrink-0" />
+                    <p className="text-xs text-brand-muted/60 truncate">
+                      {supplier.contact_info || t('suppliers.contactInfo', { defaultValue: 'No contact info' })}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex gap-2 pt-3 border-t border-brand-border/50">
-                  <button
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-3 border-t border-brand-border/10">
+                  <motion.button
                     onClick={() => handleEdit(supplier)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-brand-gold bg-brand-gold/5 hover:bg-brand-gold/10 rounded-lg transition-all duration-200 active:scale-[0.97]"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium text-brand-gold bg-brand-gold/8 hover:bg-brand-gold/15 rounded-xl transition-all duration-200 border border-brand-gold/10 hover:border-brand-gold/20"
                   >
                     <PencilSimple size={14} />
                     {t('common.edit')}
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     onClick={() => handleDeleteRequest(supplier)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-red-400 bg-red-400/5 hover:bg-red-400/10 rounded-lg transition-all duration-200 active:scale-[0.97]"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium text-red-400/80 bg-red-400/5 hover:bg-red-400/12 rounded-xl transition-all duration-200 border border-red-400/10 hover:border-red-400/20"
                   >
                     <Trash size={14} />
                     {t('common.delete')}
-                  </button>
+                  </motion.button>
                 </div>
               </motion.div>
             ))}

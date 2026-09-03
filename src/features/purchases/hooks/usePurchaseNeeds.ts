@@ -1,18 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { toArray } from '@/lib/supabase-utils';
-import type { PurchaseNeed, NewPurchaseNeed, UpdatePurchaseNeed } from '@/types/purchases';
+import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
+import { purchaseNeedSchema } from '@/types/schemas';
+import type { NewPurchaseNeed, UpdatePurchaseNeed } from '@/types/purchases';
 
 export const usePurchaseNeeds = () => {
-  return useQuery<PurchaseNeed[]>({
+  return useQuery({
     queryKey: ['purchase-needs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('purchase_needs')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await withTimeout(
+        supabase
+          .from('purchase_needs')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        DEFAULT_TIMEOUT_MS,
+        'Fetch purchase needs',
+      );
       if (error) throw new Error(error.message);
-      return toArray<PurchaseNeed>(data);
+      return toArray(data, purchaseNeedSchema);
     },
   });
 };
@@ -21,13 +26,13 @@ export const useCreatePurchaseNeed = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: NewPurchaseNeed) => {
-      const { data, error } = await supabase
-        .from('purchase_needs')
-        .insert(payload)
-        .select()
-        .single();
+      const { data, error } = await withTimeout(
+        supabase.from('purchase_needs').insert(payload).select().single(),
+        HEAVY_TIMEOUT_MS,
+        'Create purchase need',
+      );
       if (error) throw new Error(error.message);
-      return data as PurchaseNeed;
+      return toSingle(data, purchaseNeedSchema);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['purchase-needs'] });
@@ -39,14 +44,13 @@ export const useUpdatePurchaseNeed = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: UpdatePurchaseNeed }) => {
-      const { data, error } = await supabase
-        .from('purchase_needs')
-        .update(payload)
-        .eq('id', id)
-        .select()
-        .single();
+      const { data, error } = await withTimeout(
+        supabase.from('purchase_needs').update(payload).eq('id', id).select().single(),
+        HEAVY_TIMEOUT_MS,
+        'Update purchase need',
+      );
       if (error) throw new Error(error.message);
-      return data as PurchaseNeed;
+      return toSingle(data, purchaseNeedSchema);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['purchase-needs'] });

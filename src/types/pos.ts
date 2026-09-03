@@ -4,9 +4,8 @@ export interface PosProduct {
   sku: string | null;
   price_usd: number;
   price_syp: number;
-  cost_usd: number;
-  cost_syp: number;
   quantity: number;
+  is_consignment: boolean;
 }
 
 export interface CartItem {

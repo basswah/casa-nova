@@ -13,8 +13,6 @@ const mockItem: CartItem = {
     sku: 'ESP-001',
     price_usd: 25.00,
     price_syp: 312500,
-    cost_usd: 15.00,
-    cost_syp: 187500,
     quantity: 10,
   },
   quantity: 2,
@@ -27,8 +25,6 @@ const mockItemWithCustomPrice: CartItem = {
     sku: 'LAT-002',
     price_usd: 10.00,
     price_syp: 125000,
-    cost_usd: 5.00,
-    cost_syp: 62500,
     quantity: 20,
   },
   quantity: 3,
@@ -78,7 +74,7 @@ describe('CartPanel', () => {
 
   it('displays SYP total', () => {
     renderPanel({ items: [mockItem], totalSyp: 625000 });
-    expect(screen.getByText('625,000 SYP')).toBeInTheDocument();
+    expect(screen.getByText('625,000 ل.س')).toBeInTheDocument();
   });
 
   it('displays exchange rate when > 0', () => {

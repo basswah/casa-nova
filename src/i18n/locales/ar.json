@@ -38,7 +38,20 @@
     "tryDifferentSearch": "جرّب مصطلح بحث مختلف",
     "remove": "إزالة",
     "cancelling": "جارٍ الإلغاء...",
-    "success": "تم بنجاح"
+    "success": "تم بنجاح",
+    "active": "نشط",
+    "create": "إنشاء",
+    "update": "تحديث",
+    "deleteConfirmTitle": "تأكيد الحذف",
+    "deleteConfirmMessage": "هل أنت متأكد من حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+    "orders": "الطلبات",
+    "products": "المنتجات",
+    "results": "النتائج",
+    "subtotal": "المجموع الفرعي",
+    "openNavigation": "فتح قائمة التنقل",
+    "closeNavigation": "إغلاق قائمة التنقل",
+    "usd": "دولار",
+    "syp": "ل.س"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -47,8 +60,10 @@
     "todayOrders": "طلبات اليوم",
     "totalProducts": "إجمالي المنتجات",
     "lowStock": "عناصر المخزون المنخفض",
+    "outOfStock": "منتهية الكمية",
     "recentSales": "آخر المبيعات",
-    "recentOrders": "آخر أوامر الشراء"
+    "recentOrders": "آخر أوامر الشراء",
+    "welcome": "مرحباً بعودتك! إليك ما يحدث اليوم."
   },
   "nav": {
     "inventory": "المخزون",
@@ -57,19 +72,22 @@
     "suppliers": "الموردين",
     "reports": "التقارير",
     "sales": "المبيعات",
+    "consignment": "برسم البيع",
     "returns": "المرتجعات",
     "settings": "الإعدادات",
-    "title": "كازا نوفا نقاط البيع",
+    "title": "كاسا نوفا POS",
     "home": "الرئيسية",
     "users": "المستخدمين"
   },
-"inventory": {
+  "inventory": {
     "title": "المخزون",
     "addProduct": "+ إضافة منتج",
     "editProduct": "تعديل المنتج",
     "deleteProduct": "حذف المنتج",
     "deleteConfirm": "هل أنت متأكد من حذف \"{{name}}\"? لا يمكن التراجع عن هذا الإجراء.",
     "lowStock": "مخزون منخفض",
+    "outOfStock": "منتهية الكمية",
+    "inStock": "متوفر",
     "sku": "رمز المنتج",
     "category": "التصنيف",
     "priceUsd": "السعر (دولار)",
@@ -79,7 +97,11 @@
     "stock": "المخزون",
     "noProducts": "لا توجد منتجات مسجلة بعد",
     "loading": "جارٍ تحميل المنتجات...",
-    "emptyDescription": "ابدأ بإضافة أول منتج لتتبع المخزون"
+    "emptyDescription": "ابدأ بإضافة أول منتج لتتبع المخزون",
+    "consignment": "برسم البيع",
+    "filterAll": "الكل",
+    "filterConsignment": "برسم البيع",
+    "filterRegular": "عادي"
   },
   "pos": {
     "title": "نقطة البيع",
@@ -96,7 +118,16 @@
     "noProducts": "لا توجد منتجات متاحة.",
     "stock": "المخزون: {{count}}",
     "noSku": "لا يوجد رمز",
-    "customPriceActive": "✓ سعر مخصّص"
+    "customPriceActive": "✓ سعر مخصّص",
+    "discount": "خصم",
+    "removeItem": "إزالة",
+    "item": "صنف",
+    "items": "أصناف",
+    "consignment": "برسم البيع",
+    "totalProducts": "المنتجات",
+    "totalQuantity": "إجمالي الكمية",
+    "cartItems": "أصناف السلة",
+    "cartTotal": "مجموع السلة"
   },
   "purchases": {
     "title": "المشتريات",
@@ -144,7 +175,17 @@
     "shortagesComingSoon": "قريباً",
     "shortagesDescription": "قائمة الاحتياجات قيد التطوير",
     "returnsComingSoon": "قريباً",
-    "returnsDescription": "تتبع المرتجعات قيد التطوير"
+    "returnsDescription": "تتبع المرتجعات قيد التطوير",
+    "lineUsd": "الإجمالي الفرعي (دولار)",
+    "lineSyp": "الإجمالي الفرعي (ل.س)",
+    "orderId": "رقم الطلب",
+    "pageDescription": "إدارة أوامر الشراء وفواتير الموردين",
+    "product": "المنتج",
+    "receiveStock": "استلام المخزون",
+    "receivingStock": "جارٍ الاستلام...",
+    "selectProduct": "اختر المنتج",
+    "selectSupplier": "اختر المورد",
+    "supplier": "المورد"
   },
   "shortages": {
     "title": "النواقص",
@@ -177,7 +218,9 @@
     "deleteConfirm": "هل أنت متأكد من حذف \"{{name}}\"? لا يمكن التراجع عن هذا الإجراء.",
     "contactInfo": "معلومات الاتصال",
     "noSuppliers": "لا توجد موردين مسجلين بعد",
-    "loading": "جارٍ تحميل الموردين..."
+    "loading": "جارٍ تحميل الموردين...",
+    "emptyDescription": "أضف الموردين لإدارة فواتير المشتريات",
+    "subtitle": "إدارة جهات اتصال الموردين"
   },
   "settings": {
     "title": "الإعدادات",
@@ -205,7 +248,36 @@
     "noSales": "لا توجد مبيعات",
     "today": "اليوم",
     "thisWeek": "هذا الأسبوع",
-    "thisMonth": "هذا الشهر"
+    "thisMonth": "هذا الشهر",
+    "fullYear": "السنة كاملة",
+    "customRange": "فترة مخصصة",
+    "byMonth": "حسب الشهر",
+    "byYear": "حسب السنة",
+    "year": "السنة",
+    "month": "الشهر",
+    "viewMonth": "عرض الشهر",
+    "viewYear": "عرض السنة",
+    "rank": "الترتيب",
+    "inSelectedPeriod": "في الفترة المحددة",
+    "rankedByRevenue": "مرتب حسب الإيراد",
+    "january": "يناير",
+    "february": "فبراير",
+    "march": "مارس",
+    "april": "أبريل",
+    "may": "مايو",
+    "june": "يونيو",
+    "july": "يوليو",
+    "august": "أغسطس",
+    "september": "سبتمبر",
+    "october": "أكتوبر",
+    "november": "نوفمبر",
+    "december": "ديسمبر",
+    "noSalesInYear": "لا توجد مبيعات لهذا العام",
+    "selectPeriod": "اختر الفترة",
+    "close": "إغلاق",
+    "subtitle": "تحليلات المبيعات الفورية والرؤى",
+    "topProductsDesc": "الأفضل أداءً في الفترة المحددة",
+    "rankedByRevenue": "مرتب حسب الإيراد"
   },
   "categories": {
     "title": "التصنيفات",
@@ -219,6 +291,11 @@
     "noCategories": "لا توجد تصنيفات",
     "cannotDelete": "لا يمكن حذف تصنيف يحتوي على منتجات"
   },
+  "categoryManager": {
+    "manageCategories": "إدارة التصنيفات",
+    "newCategoryPlaceholder": "اسم التصنيف الجديد",
+    "noCategories": "لا توجد تصنيفات بعد"
+  },
   "productForm": {
     "title": "المنتج",
     "newProduct": "منتج جديد",
@@ -229,7 +306,11 @@
     "selectCategory": "اختر تصنيف",
     "addProduct": "إضافة منتج",
     "updateProduct": "تحديث المنتج",
-    "submitting": "جارٍ الإرسال..."
+    "submitting": "جارٍ الإرسال...",
+    "isConsignment": "بضاعة برسم البيع",
+    "consignmentHint": "Consignment goods",
+    "supplier": "المورد",
+    "selectSupplier": "اختر المورد"
   },
   "supplierForm": {
     "title": "المورد",
@@ -285,7 +366,8 @@
     "unknownProduct": "منتج غير معروف",
     "created": "تم تسجيل المرتجع بنجاح",
     "deleted": "تم حذف المرتجع",
-    "deleteConfirm": "حذف مرتجع \"{{name}}\"?"
+    "deleteConfirm": "حذف مرتجع \"{{name}}\"?",
+    "submitReturn": "إرسال المرتجع"
   },
   "profile": {
     "title": "الملف الشخصي",
@@ -316,6 +398,46 @@
     "active": "نشط",
     "inactive": "غير نشط",
     "noUsers": "لا يوجد مستخدمين",
-    "lastSignIn": "آخر تسجيل"
+    "lastSignIn": "آخر تسجيل",
+    "roles": {
+      "cashier": "أمين الصندوق",
+      "manager": "المدير",
+      "admin": "المدير العام"
+    }
+  },
+  "errorBoundary": {
+    "title": "حدث خطأ ما",
+    "description": "حدث خطأ غير متوقع. يرجى إعادة تحميل الصفحة.",
+    "reload": "إعادة تحميل",
+    "pageError": "خطأ في الصفحة",
+    "pageDescription": "واجهت هذه الصفحة خطأ. يمكنك المحاولة مرة أخرى أو الانتقال إلى صفحة أخرى.",
+    "tryAgain": "حاول مرة أخرى",
+    "goHome": "الذهاب للرئيسية"
+  },
+  "consignment": {
+    "title": "بضاعة برسم البيع",
+    "subtitle": "تتبع وتسوية مبيعات البضاعة برسم البيع مع الموردين",
+    "totalSales": "إجمالي المبيعات",
+    "unsettled": "غير مسددة",
+    "settled": "مسددة",
+    "suppliers": "الموردين",
+    "searchPlaceholder": "بحث بالمورد أو المنتج...",
+    "noSales": "لا توجد مبيعات برسم البيع بعد",
+    "noSalesDesc": "ستظهر مبيعات البضاعة برسم البيع هنا",
+    "noResults": "لا توجد نتائج",
+    "items": "قطعة",
+    "sales": "مبيعات",
+    "product": "المنتج",
+    "qty": "الكمية",
+    "unitPrice": "سعر الوحدة",
+    "total": "الإجمالي",
+    "status": "الحالة",
+    "pending": "معلقة",
+    "settleAll": "تسوية الكل",
+    "due": "مستحق",
+    "unknownSupplier": "مورد غير معروف",
+    "settledSuccess": "تم التسوية مع {{supplier}}: ${{amount}}",
+    "itemSettled": "تم تسوية البيع: ${{amount}}",
+    "settleError": "فشل في تسوية البيع"
   }
 }

@@ -1,20 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchAllSettings, upsertSetting, updateAllProductPricesSyp } from '@/features/settings/services/api';
+import { withTimeout, DEFAULT_TIMEOUT_MS, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
 
 interface SettingsMap {
   exchangeRate: number;
   storeName: string;
   storeAddress: string;
 }
-
-const withTimeout = <T>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
-    )
-  ]);
-};
 
 const toSettingsMap = (): Promise<SettingsMap> =>
   withTimeout(
@@ -26,7 +18,7 @@ const toSettingsMap = (): Promise<SettingsMap> =>
         storeAddress: map.store_address ?? '',
       };
     }),
-    15000,
+    DEFAULT_TIMEOUT_MS,
     'Settings fetch'
   );
 
@@ -42,12 +34,12 @@ export const useUpdateExchangeRate = () => {
     mutationFn: async (rate: number) => {
       await withTimeout(
         upsertSetting('exchange_rate', rate.toString()),
-        15000,
+        DEFAULT_TIMEOUT_MS,
         'Update exchange rate'
       );
       await withTimeout(
         updateAllProductPricesSyp(rate),
-        30000,
+        HEAVY_TIMEOUT_MS,
         'Update all product SYP prices'
       );
     },
@@ -65,7 +57,7 @@ export const useUpdateStoreName = () => {
     mutationFn: async (name: string) => {
       await withTimeout(
         upsertSetting('store_name', name),
-        15000,
+        DEFAULT_TIMEOUT_MS,
         'Update store name'
       );
     },
@@ -79,7 +71,7 @@ export const useUpdateStoreAddress = () => {
     mutationFn: async (address: string) => {
       await withTimeout(
         upsertSetting('store_address', address),
-        15000,
+        DEFAULT_TIMEOUT_MS,
         'Update store address'
       );
     },

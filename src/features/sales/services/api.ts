@@ -1,104 +1,66 @@
 import { supabase } from '@/lib/supabase';
-import { toArray, toSingle } from '@/lib/supabase-utils';
-import type { SalesOrder, NewSalesOrder, UpdateSalesOrder, NewSalesOrderItem } from '@/types/sales';
+import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
+import { salesOrderSchema } from '@/types/schemas';
+import type { UpdateSalesOrder } from '@/types/sales';
+import type { CheckoutPayload, RpcSaleResponse } from '@/types/pos';
+import type { Json } from '@/types/database';
 
-export const fetchSalesOrders = async (): Promise<SalesOrder[]> => {
-  const { data, error } = await supabase.from('sales_orders').select('*').order('order_date', { ascending: false });
+export const fetchSalesOrders = async () => {
+  const { data, error } = await withTimeout(
+    supabase.from('sales_orders').select('*').order('order_date', { ascending: false }),
+    DEFAULT_TIMEOUT_MS,
+    'Fetch sales orders',
+  );
   if (error) throw new Error(error.message);
-  return toArray<SalesOrder>(data);
+  return toArray(data, salesOrderSchema);
 };
 
-export const createSalesOrder = async (order: NewSalesOrder, items: NewSalesOrderItem[]): Promise<SalesOrder> => {
-  const { data: orderData, error: orderError } = await supabase
-    .from('sales_orders')
-    .insert(order)
-    .select()
-    .single();
-  if (orderError) throw new Error(orderError.message);
-
-  const itemsWithOrderId = items.map(item => ({ ...item, so_id: orderData.id }));
-  await supabase
-    .from('sales_order_items')
-    .insert(itemsWithOrderId);
-
-  return toSingle<SalesOrder>(orderData);
-};
-
-export const updateSalesOrder = async (id: string, payload: UpdateSalesOrder): Promise<SalesOrder> => {
-  const { data, error } = await supabase
-    .from('sales_orders')
-    .update(payload)
-    .eq('id', id)
-    .select()
-    .single();
+export const updateSalesOrder = async (id: string, payload: UpdateSalesOrder) => {
+  const { data, error } = await withTimeout(
+    supabase.from('sales_orders').update(payload).eq('id', id).select().single(),
+    DEFAULT_TIMEOUT_MS,
+    'Update sales order',
+  );
   if (error) throw new Error(error.message);
-  return toSingle<SalesOrder>(data);
+  return toSingle(data, salesOrderSchema);
 };
 
 export const deleteSalesOrder = async (id: string): Promise<void> => {
-  await supabase.from('sales_order_items').delete().eq('so_id', id);
-  const { error } = await supabase.from('sales_orders').delete().eq('id', id);
+  await withTimeout(
+    supabase.from('sales_order_items').delete().eq('so_id', id),
+    DEFAULT_TIMEOUT_MS,
+    'Delete sales order items',
+  );
+  const { error } = await withTimeout(
+    supabase.from('sales_orders').delete().eq('id', id),
+    DEFAULT_TIMEOUT_MS,
+    'Delete sales order',
+  );
   if (error) throw new Error(error.message);
 };
 
+/**
+ * Completes a sale atomically via the `complete_sale` Postgres RPC.
+ * The database function locks stock rows, validates availability, inserts the
+ * order + items, deducts stock, and rolls the whole thing back on any failure.
+ */
 export const completeSale = async (
   totalUsd: number,
   totalSyp: number,
-  items: Array<{ product_id: string; quantity: number; unit_price_usd: number; unit_price_syp: number }>
-): Promise<{ success: boolean; order_id?: string; error?: string }> => {
-  const { data: orderData, error: orderError } = await supabase
-    .from('sales_orders')
-    .insert({
-      total_usd: totalUsd,
-      total_syp: totalSyp,
-      payment_method: 'cash',
-      status: 'completed',
-    })
-    .select()
-    .single();
+  items: CheckoutPayload['items'],
+  paymentMethod: string = 'cash',
+): Promise<RpcSaleResponse> => {
+  const { data, error } = await withTimeout(
+    supabase.rpc('complete_sale', {
+      p_total_usd: totalUsd,
+      p_total_syp: totalSyp,
+      p_items: items as unknown as Json,
+      p_payment_method: paymentMethod,
+    }),
+    HEAVY_TIMEOUT_MS,
+    'Complete sale',
+  );
 
-  if (orderError) {
-    return { success: false, error: orderError.message };
-  }
-
-  const itemsWithOrderId = items.map(item => ({
-    ...item,
-    so_id: orderData.id,
-  }));
-
-  const { error: itemsError } = await supabase
-    .from('sales_order_items')
-    .insert(itemsWithOrderId);
-
-  if (itemsError) {
-    return { success: false, error: itemsError.message };
-  }
-
-  for (const item of items) {
-    const { data: product, error: fetchError } = await supabase
-      .from('products')
-      .select('quantity')
-      .eq('id', item.product_id)
-      .single();
-
-    if (fetchError || !product) {
-      return { success: false, error: `Product ${item.product_id} not found` };
-    }
-
-    const newQty = product.quantity - item.quantity;
-    if (newQty < 0) {
-      return { success: false, error: `Insufficient stock for product ${item.product_id}` };
-    }
-
-    const { error: updateError } = await supabase
-      .from('products')
-      .update({ quantity: newQty })
-      .eq('id', item.product_id);
-
-    if (updateError) {
-      return { success: false, error: updateError.message };
-    }
-  }
-
-  return { success: true, order_id: orderData.id };
+  if (error) return { success: false, error: error.message };
+  return (data as unknown as RpcSaleResponse) ?? { success: false, error: 'Empty response' };
 };

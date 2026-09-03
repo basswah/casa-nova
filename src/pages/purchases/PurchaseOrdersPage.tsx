@@ -1,7 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Plus, Package } from '@phosphor-icons/react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import {
+  ShoppingCart,
+  Plus,
+  CurrencyDollar,
+  UsersThree,
+  TrendUp,
+  Receipt,
+  ListChecks,
+  ArrowCounterClockwise,
+  Sparkle,
+} from '@phosphor-icons/react';
 import { usePurchaseOrders } from '@/features/purchases/hooks/usePurchaseOrders';
 import { useSuppliers } from '@/features/purchases/hooks/useSuppliers';
 import { useCreatePurchaseInvoice } from '@/features/purchases/hooks/useCreatePurchaseInvoice';
@@ -15,31 +25,50 @@ import { PurchaseReturnsList } from '@/features/purchases/components/PurchaseRet
 import { PurchaseReturnForm } from '@/features/purchases/components/PurchaseReturnForm';
 import { PurchaseOrderForm } from '@/features/purchases/components/PurchaseOrderForm';
 
-const staggerContainer = {
+const ease = [0.16, 1, 0.3, 1] as const;
+
+const page = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
   },
 };
 
-const staggerItem = {
-  hidden: { opacity: 0, y: 24 },
+const fadeUp = {
+  hidden: { opacity: 0, y: 20, filter: 'blur(8px)' },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+    filter: 'blur(0px)',
+    transition: { duration: 0.6, ease },
   },
 };
 
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.92 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.5, ease },
+  },
+};
+
+const tabs = [
+  { key: 'invoices' as const, icon: Receipt, labelKey: 'purchases.invoices' },
+  { key: 'shortages' as const, icon: ListChecks, labelKey: 'purchases.shortages' },
+  { key: 'returns' as const, icon: ArrowCounterClockwise, labelKey: 'purchases.returns' },
+] as const;
+
 export const PurchaseOrdersPage = () => {
   const { t } = useTranslation();
+  const prefersReduced = useReducedMotion();
   const { data: orders = [] } = usePurchaseOrders();
   const { data: suppliers = [] } = useSuppliers();
   const createInvoice = useCreatePurchaseInvoice();
   const { user } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
-  
+
   const [openForm, setOpenForm] = useState(false);
   const [viewOrderId, setViewOrderId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'invoices' | 'shortages' | 'returns'>('invoices');
@@ -58,34 +87,43 @@ export const PurchaseOrdersPage = () => {
     });
   }, [orders]);
 
+  const totalValue = useMemo(
+    () => orders.reduce((sum, o) => sum + (o.total_usd || 0), 0),
+    [orders],
+  );
+
   const metrics = [
     {
       label: t('purchases.totalInvoices'),
       value: orders.length,
       icon: ShoppingCart,
-      accent: 'gold',
-      desc: 'All time',
+      gradient: 'from-amber-500/20 to-yellow-600/5',
+      iconColor: 'text-amber-400',
+      span: 'col-span-1',
     },
     {
       label: t('purchases.thisMonth'),
       value: thisMonth.length,
-      icon: Package,
-      accent: 'brand',
-      desc: 'This period',
+      icon: TrendUp,
+      gradient: 'from-blue-500/20 to-cyan-600/5',
+      iconColor: 'text-blue-400',
+      span: 'col-span-1',
     },
     {
       label: t('purchases.totalSuppliers'),
       value: suppliers.length,
-      icon: Package,
-      accent: 'muted',
-      desc: 'Active vendors',
+      icon: UsersThree,
+      gradient: 'from-purple-500/20 to-violet-600/5',
+      iconColor: 'text-purple-400',
+      span: 'col-span-1',
     },
     {
       label: t('purchases.totalValue'),
-      value: `$${orders.reduce((sum, o) => sum + (o.total_usd || 0), 0).toLocaleString()}`,
-      icon: ShoppingCart,
-      accent: 'green',
-      desc: 'Invoices total',
+      value: `$${totalValue.toLocaleString()}`,
+      icon: CurrencyDollar,
+      gradient: 'from-emerald-500/20 to-green-600/5',
+      iconColor: 'text-emerald-400',
+      span: 'col-span-1',
     },
   ];
 
@@ -97,25 +135,12 @@ export const PurchaseOrdersPage = () => {
       addToast(t('common.error'), 'error');
       return;
     }
-
-    const orderData = {
-      supplier_id: order.supplier_id,
-      order_date: order.order_date,
-      total_usd: order.total_usd,
-      total_syp: order.total_syp,
-      status: order.status,
-    };
-
-    const itemsData = items.map((item) => ({
-      product_id: item.product_id,
-      product_name: item.product_name,
-      quantity: item.quantity,
-      unit_price_usd: item.unit_price_usd,
-      unit_price_syp: item.unit_price_syp,
-    }));
-
     try {
-      await createInvoice.mutateAsync({ order: orderData, items: itemsData, userId: user.id });
+      await createInvoice.mutateAsync({
+        order: { ...order },
+        items: items.map((item) => ({ ...item })),
+        userId: user.id,
+      });
       setOpenForm(false);
       addToast(t('purchases.invoiceCreated', 'Invoice created and stock updated'), 'success');
     } catch (err) {
@@ -123,148 +148,196 @@ export const PurchaseOrdersPage = () => {
     }
   };
 
+  const handleAdd = () => {
+    if (activeTab === 'invoices') setOpenForm(true);
+    else if (activeTab === 'shortages') setOpenNeedForm(true);
+    else setOpenReturnForm(true);
+  };
+
+  const addLabel = activeTab === 'invoices'
+    ? t('purchases.addInvoice')
+    : activeTab === 'shortages'
+    ? t('shortages.addNeed', 'Add Need')
+    : t('returns.addReturn', 'Record Return');
+
   return (
-    <div className="min-h-[100dvh] max-w-7xl mx-auto space-y-6 md:space-y-8 p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="max-w-lg">
-          <h1 className="text-xl md:text-2xl font-bold text-brand-light tracking-tight">{t('purchases.title')}</h1>
-          <p className="text-xs md:text-sm text-brand-muted/50 mt-1 tracking-tight">
-            {t('purchases.subtitle', 'Manage supplier invoices and incoming stock')}
-          </p>
-        </div>
-        {activeTab === 'invoices' && (
-          <button
-            onClick={() => setOpenForm(true)}
-            className="shrink-0 px-4 py-2 bg-brand-gold text-brand-black font-semibold rounded-xl hover:bg-[var(--clr-gold-hover)] hover:shadow-[0_0_20px_-4px_rgba(212,175,55,0.25)] transition-all duration-300 ease-out-expo active:scale-[0.97] flex items-center gap-2"
-          >
-            <Plus size={18} weight="bold" />
-            {t('purchases.addInvoice')}
-          </button>
-        )}
-        {activeTab === 'shortages' && (
-          <button
-            onClick={() => setOpenNeedForm(true)}
-            className="shrink-0 px-4 py-2 bg-brand-gold text-brand-black font-semibold rounded-xl hover:bg-[var(--clr-gold-hover)] hover:shadow-[0_0_20px_-4px_rgba(212,175,55,0.25)] transition-all duration-300 ease-out-expo active:scale-[0.97] flex items-center gap-2"
-          >
-            <Plus size={18} weight="bold" />
-            {t('shortages.addNeed', 'Add Need')}
-          </button>
-        )}
-        {activeTab === 'returns' && (
-          <button
-            onClick={() => setOpenReturnForm(true)}
-            className="shrink-0 px-4 py-2 bg-brand-gold text-brand-black font-semibold rounded-xl hover:bg-[var(--clr-gold-hover)] hover:shadow-[0_0_20px_-4px_rgba(212,175,55,0.25)] transition-all duration-300 ease-out-expo active:scale-[0.97] flex items-center gap-2"
-          >
-            <Plus size={18} weight="bold" />
-            {t('returns.addReturn', 'Record Return')}
-          </button>
-        )}
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-2 p-1 bg-brand-dark rounded-xl border border-brand-border overflow-x-auto">
-        {(['invoices', 'shortages', 'returns'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium transition-all duration-200 ease-out-expo active:scale-[0.97] ${
-              activeTab === tab
-                ? 'bg-brand-gold text-brand-black shadow-sm'
-                : 'text-brand-muted hover:text-brand-light hover:bg-white/5'
-            }`}
-          >
-            {tab === 'invoices' && t('purchases.invoices')}
-            {tab === 'shortages' && t('purchases.shortages')}
-            {tab === 'returns' && t('purchases.returns')}
-          </button>
-        ))}
-      </div>
-
+    <main className="min-h-[100dvh] overflow-x-hidden">
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        variants={staggerContainer}
+        variants={page}
         initial="hidden"
         animate="visible"
+        className="relative"
       >
-        {metrics.map((m) => {
-          const Icon = m.icon;
-          return (
-            <motion.div
-              key={m.label}
-              variants={staggerItem}
-              className="relative overflow-hidden rounded-3xl bg-brand-dark border border-brand-border/30 shadow-[var(--shadow-floating)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:shadow-[var(--shadow-hover)]"
+        {/* Ambient Background */}
+        <div className="pointer-events-none fixed inset-0 -z-10">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-brand-gold/[0.03] rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-0 w-[500px] h-[400px] bg-blue-500/[0.02] rounded-full blur-[100px]" />
+        </div>
+
+        {/* Hero Header */}
+        <motion.section
+          variants={fadeUp}
+          className="relative px-4 md:px-8 pt-10 md:pt-16 pb-8 md:pb-12 max-w-7xl mx-auto"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div className="max-w-2xl">
+              <motion.div
+                variants={scaleIn}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/20 mb-5"
+              >
+                <Sparkle size={14} weight="fill" className="text-brand-gold" />
+                <span className="text-[11px] font-semibold text-brand-gold uppercase tracking-widest">
+                  {t('purchases.title')}
+                </span>
+              </motion.div>
+
+              <h1 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-brand-light leading-[1.1] tracking-tight">
+                {t('purchases.subtitle', 'Manage supplier invoices and incoming stock')}
+              </h1>
+
+              <p className="mt-3 text-sm md:text-base text-brand-muted/60 max-w-lg leading-relaxed">
+                {t('purchases.pageDescription', 'Track purchases, monitor shortages, and manage returns from a single dashboard.')}
+              </p>
+            </div>
+
+            <motion.button
+              variants={scaleIn}
+              onClick={handleAdd}
+              whileHover={{ scale: 1.02, boxShadow: '0 0 30px -4px rgba(201, 160, 60, 0.35)' }}
+              whileTap={{ scale: 0.97 }}
+              className="shrink-0 h-12 px-6 bg-brand-gold text-brand-black font-semibold rounded-2xl flex items-center gap-2.5 transition-colors duration-300 hover:bg-[var(--clr-gold-hover)]"
             >
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className={`shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center ${
-                    m.accent === 'gold'
-                      ? 'bg-brand-gold/10 text-brand-gold'
-                      : m.accent === 'green'
-                      ? 'bg-green-500/10 text-green-400'
-                      : m.accent === 'brand'
-                      ? 'bg-brand-surface-hover text-brand-light'
-                      : 'bg-brand-surface-hover text-brand-muted'
-                  }`}>
-                    <Icon size={22} weight="duotone" />
+              <Plus size={20} weight="bold" />
+              {addLabel}
+            </motion.button>
+          </div>
+        </motion.section>
+
+        {/* Metrics Bento Grid */}
+        <motion.section
+          variants={fadeUp}
+          className="px-4 md:px-8 pb-6 md:pb-8 max-w-7xl mx-auto"
+        >
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {metrics.map((m) => {
+              const Icon = m.icon;
+              return (
+                <motion.div
+                  key={m.label}
+                  variants={scaleIn}
+                  whileHover={prefersReduced ? {} : { y: -4, transition: { duration: 0.3, ease } }}
+                  className={`relative group overflow-hidden rounded-3xl border border-white/[0.06] bg-gradient-to-br ${m.gradient} backdrop-blur-sm p-5 md:p-6 cursor-default`}
+                >
+                  {/* Glow on hover */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-white/[0.03] to-transparent" />
+
+                  <div className="relative z-10">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center bg-white/[0.06] mb-4 ${m.iconColor}`}>
+                      <Icon size={20} weight="duotone" />
+                    </div>
+                    <p className="text-[11px] font-medium text-brand-muted/50 uppercase tracking-widest mb-1">
+                      {m.label}
+                    </p>
+                    <p className="text-2xl md:text-3xl font-bold font-mono text-brand-light tracking-tight">
+                      {m.value}
+                    </p>
                   </div>
-                </div>
-                <p className="text-[10px] font-medium text-brand-muted/50 uppercase tracking-widest mb-1.5">{m.label}</p>
-                <p className={`text-2xl md:text-3xl font-bold font-mono tracking-tight ${
-                  m.accent === 'gold'
-                    ? 'text-brand-gold'
-                    : m.accent === 'green'
-                    ? 'text-green-400'
-                    : 'text-brand-light'
-                }`}>
-                  {m.value}
-                </p>
-                <p className="text-[11px] text-brand-muted/50 mt-1.5">{m.desc}</p>
-              </div>
-            </motion.div>
-          );
-        })}
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        {/* Tab Navigation */}
+        <motion.section
+          variants={fadeUp}
+          className="px-4 md:px-8 pb-6 md:pb-8 max-w-7xl mx-auto"
+        >
+          <div className="inline-flex p-1 rounded-2xl bg-brand-dark/80 backdrop-blur-xl border border-white/[0.06]">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`
+                    relative flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-medium
+                    transition-all duration-300 ease-out-expo
+                    ${isActive
+                      ? 'text-brand-black'
+                      : 'text-brand-muted hover:text-brand-light'
+                    }
+                  `}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-brand-gold rounded-xl"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2.5">
+                    <Icon size={16} weight={isActive ? 'fill' : 'duotone'} />
+                    {t(tab.labelKey)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        {/* Content */}
+        <motion.section
+          variants={fadeUp}
+          className="px-4 md:px-8 pb-16 md:pb-24 max-w-7xl mx-auto"
+        >
+          <AnimatePresence mode="wait">
+            {activeTab === 'invoices' && (
+              <motion.div
+                key="invoices"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease }}
+              >
+                <PurchaseInvoiceList
+                  onView={setViewOrderId}
+                  onAddInvoice={() => setOpenForm(true)}
+                />
+              </motion.div>
+            )}
+            {activeTab === 'shortages' && (
+              <motion.div
+                key="shortages"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease }}
+              >
+                <PurchaseNeedsList />
+              </motion.div>
+            )}
+            {activeTab === 'returns' && (
+              <motion.div
+                key="returns"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease }}
+              >
+                <PurchaseReturnsList />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.section>
       </motion.div>
 
-      <AnimatePresence mode="wait">
-        {activeTab === 'invoices' ? (
-          <motion.div
-            key="invoices"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <PurchaseInvoiceList
-              onView={setViewOrderId}
-              onAddInvoice={() => setOpenForm(true)}
-            />
-          </motion.div>
-        ) : activeTab === 'shortages' ? (
-          <motion.div
-            key="shortages"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <PurchaseNeedsList />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="returns"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <PurchaseReturnsList />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+      {/* Modals */}
       <PurchaseOrderForm open={openForm} onClose={() => setOpenForm(false)} onSubmit={handleCreateInvoice} />
       <PurchaseNeedForm open={openNeedForm} onClose={() => setOpenNeedForm(false)} />
       <PurchaseReturnForm open={openReturnForm} onClose={() => setOpenReturnForm(false)} />
       <PurchaseInvoiceDetail orderId={viewOrderId} onClose={handleCloseDetail} />
-    </div>
+    </main>
   );
 };

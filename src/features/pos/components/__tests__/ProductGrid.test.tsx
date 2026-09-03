@@ -7,9 +7,9 @@ import { ProductGrid } from '../ProductGrid';
 import type { PosProduct } from '@/types/pos';
 
 const mockProducts: PosProduct[] = [
-  { id: '1', name: 'Espresso Beans', sku: 'ESP-001', price_usd: 25.00, price_syp: 312500, cost_usd: 15.00, cost_syp: 187500, quantity: 10 },
-  { id: '2', name: 'Latte Cup', sku: 'LAT-002', price_usd: 10.00, price_syp: 125000, cost_usd: 5.00, cost_syp: 62500, quantity: 0 },
-  { id: '3', name: 'Moka Pot', sku: null, price_usd: 45.00, price_syp: 562500, cost_usd: 20.00, cost_syp: 250000, quantity: 5 },
+  { id: '1', name: 'Espresso Beans', sku: 'ESP-001', price_usd: 25.00, price_syp: 312500, quantity: 10 },
+  { id: '2', name: 'Latte Cup', sku: 'LAT-002', price_usd: 10.00, price_syp: 125000, quantity: 0 },
+  { id: '3', name: 'Moka Pot', sku: null, price_usd: 45.00, price_syp: 562500, quantity: 5 },
 ];
 
 describe('ProductGrid', () => {

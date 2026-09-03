@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Wallet } from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
+import { Wallet, TrendUp, TrendDown } from '@phosphor-icons/react';
 import type { ProfitSummary } from '@/types/reports';
 
 interface ProfitSummaryCardProps {
@@ -12,37 +13,29 @@ export const ProfitSummaryCard = ({ data, loading }: ProfitSummaryCardProps) => 
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-brand-border/60 bg-brand-dark p-5 md:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="shrink-0 w-11 h-11 rounded-xl bg-brand-surface-hover animate-pulse" />
-          <div className="space-y-2 flex-1">
-            <div className="h-3 w-24 bg-brand-surface-hover rounded animate-pulse" />
-            <div className="h-7 w-32 bg-brand-surface-hover rounded animate-pulse" />
-          </div>
+      <div className="rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border border-brand-border/20 p-5 md:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-3 w-24 bg-brand-border/20 rounded-lg animate-pulse" />
+          <div className="w-8 h-8 bg-brand-border/20 rounded-xl animate-pulse" />
         </div>
-        <div className="space-y-2.5">
-          <div className="h-4 w-full bg-brand-surface-hover rounded animate-pulse" />
-          <div className="h-4 w-3/4 bg-brand-surface-hover rounded animate-pulse" />
-        </div>
-        <p className="text-sm text-brand-muted mt-3">{t('common.loading')}</p>
+        <div className="h-8 w-32 bg-brand-border/20 rounded-xl animate-pulse mb-3" />
+        <div className="h-3 w-20 bg-brand-border/15 rounded-lg animate-pulse" />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="rounded-xl border border-brand-border/60 bg-brand-dark p-5 md:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-        <div className="flex items-start gap-4">
-          <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center bg-brand-surface-hover text-brand-muted/50">
-            <Wallet size={20} weight="duotone" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-brand-muted/70 uppercase tracking-widest">
-              {t('reports.profitSummary')}
-            </p>
-            <p className="text-sm text-brand-muted/50 mt-2">{t('common.noData')}</p>
+      <div className="rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border border-brand-border/20 p-5 md:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[10px] md:text-[11px] font-medium text-brand-muted/60 uppercase tracking-wider">
+            {t('reports.profitSummary')}
+          </span>
+          <div className="w-8 h-8 rounded-xl bg-brand-dark/40 backdrop-blur-sm flex items-center justify-center text-blue-400/80">
+            <Wallet size={14} weight="duotone" />
           </div>
         </div>
+        <p className="text-sm text-brand-muted/50">{t('common.noData')}</p>
       </div>
     );
   }
@@ -50,39 +43,54 @@ export const ProfitSummaryCard = ({ data, loading }: ProfitSummaryCardProps) => 
   const profitPositive = data.profitUsd >= 0;
 
   return (
-    <div className="group rounded-xl border border-brand-border/60 bg-brand-dark p-5 md:p-6 transition-all duration-300 ease-out-expo hover:border-brand-gold/20 hover:shadow-[var(--shadow-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="flex items-start gap-4 mb-4">
-        <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 ease-out-expo group-hover:scale-110 ${
-          profitPositive
-            ? 'bg-green-500/10 text-green-400'
-            : 'bg-red-500/10 text-red-400'
+    <motion.div
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      className={`rounded-2xl bg-gradient-to-br ${
+        profitPositive
+          ? 'from-emerald-500/10 to-teal-500/5'
+          : 'from-red-500/10 to-rose-500/5'
+      } border border-brand-border/20 p-5 md:p-6 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]`}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[10px] md:text-[11px] font-medium text-brand-muted/60 uppercase tracking-wider">
+          {t('reports.profitSummary')}
+        </span>
+        <div className={`w-8 h-8 rounded-xl bg-brand-dark/40 backdrop-blur-sm flex items-center justify-center ${
+          profitPositive ? 'text-emerald-400/80' : 'text-red-400/80'
         }`}>
-          <Wallet size={20} weight="duotone" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-brand-muted/70 uppercase tracking-widest">
-            {t('reports.profitSummary')}
-          </p>
-          <p className={`text-xl md:text-2xl font-bold font-mono mt-1 leading-none ${
-            profitPositive ? 'text-green-400' : 'text-red-400'
-          }`}>
-            ${data.profitUsd.toFixed(2)}
-          </p>
-          <p className="text-[11px] text-brand-muted/50 mt-1">
-            {t('reports.profitUsd')}
-          </p>
+          <Wallet size={14} weight="duotone" />
         </div>
       </div>
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between py-2 border-t border-brand-border/40">
-          <span className="text-xs text-brand-muted/70">{t('reports.profitSyp')}</span>
-          <span className={`text-xs md:text-sm font-mono ${
-            data.profitSyp >= 0 ? 'text-green-400' : 'text-red-400'
+
+      {/* Main Value */}
+      <div className="flex items-baseline gap-2 mb-1">
+        <p className={`text-2xl md:text-3xl font-bold font-mono tracking-tight ${
+          profitPositive ? 'text-emerald-400' : 'text-red-400'
+        }`}>
+          ${Math.abs(data.profitUsd).toFixed(2)}
+        </p>
+        {profitPositive ? (
+          <TrendUp size={16} weight="bold" className="text-emerald-400/60" />
+        ) : (
+          <TrendDown size={16} weight="bold" className="text-red-400/60" />
+        )}
+      </div>
+      <p className="text-[10px] md:text-[11px] text-brand-muted/40 mb-4">
+        {t('reports.profitUsd')}
+      </p>
+
+      {/* SYP */}
+      <div className="pt-3 border-t border-brand-border/10">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] md:text-[11px] text-brand-muted/60">{t('reports.profitSyp')}</span>
+          <span className={`text-xs md:text-sm font-mono tabular-nums ${
+            data.profitSyp >= 0 ? 'text-emerald-400/80' : 'text-red-400/80'
           }`}>
-            {data.profitSyp.toLocaleString()} SYP
+            {data.profitSyp >= 0 ? '' : '-'}{Math.abs(data.profitSyp).toLocaleString()} ل.س
           </span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

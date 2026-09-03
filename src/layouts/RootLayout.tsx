@@ -1,7 +1,8 @@
-import logo from "./ChatGPT Image 4 يونيو 2026، 07_53_42 م.png";
+import logo from "./casa-nova-logo.png";
 import { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { X, SignOut } from "@phosphor-icons/react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useProfile } from "@/features/admin/hooks/useUsers";
 import { LanguageSwitcher } from "@/features/shared/components/LanguageSwitcher";
@@ -24,26 +25,9 @@ const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
       : "text-brand-muted hover:text-brand-light hover:bg-white/5"
   }`;
 
-const CloseIcon = () => (
-  <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-  </svg>
-);
+const CloseIcon = () => <X weight="bold" className="w-5 h-5" />;
 
-const LogoutIcon = () => (
-  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-    <path
-      fillRule="evenodd"
-      d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z"
-      clipRule="evenodd"
-    />
-    <path
-      fillRule="evenodd"
-      d="M19 10a.75.75 0 0 0-.75-.75H8.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114l-1.048-.943h9.546A.75.75 0 0 0 19 10Z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
+const LogoutIcon = () => <SignOut weight="bold" className="w-4 h-4" />;
 
 export const RootLayout = () => {
   const { t } = useTranslation();
@@ -52,16 +36,18 @@ export const RootLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [prevPath, setPrevPath] = useState(location.pathname);
+
+  if (location.pathname !== prevPath) {
+    setPrevPath(location.pathname);
+    setMobileOpen(false);
+  }
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login");
     }
   }, [user, loading, navigate]);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
 
   useEffect(() => {
     if (mobileOpen) {
@@ -118,6 +104,9 @@ export const RootLayout = () => {
       <NavLink to="/sales" className={linkClass}>
         {t("nav.sales")}
       </NavLink>
+      <NavLink to="/consignment" className={linkClass}>
+        {t("nav.consignment")}
+      </NavLink>
       <NavLink to="/returns" className={linkClass}>
         {t("nav.returns")}
       </NavLink>
@@ -155,6 +144,9 @@ export const RootLayout = () => {
       <NavLink to="/sales" className={mobileLinkClass}>
         {t("nav.sales")}
       </NavLink>
+      <NavLink to="/consignment" className={mobileLinkClass}>
+        {t("nav.consignment")}
+      </NavLink>
       <NavLink to="/returns" className={mobileLinkClass}>
         {t("nav.returns")}
       </NavLink>
@@ -190,7 +182,7 @@ export const RootLayout = () => {
                to="/"
                className="flex items-center shrink-0 mr-10 hover:opacity-80 transition-opacity"
              >
-               <img src={logo} alt="Logo" className="h-15 md:h-18 w-auto object-contain" />
+               <img src={logo} alt={t('nav.title')} className="h-15 md:h-18 w-auto object-contain" />
              </NavLink>
 
             <div className="flex items-center gap-0.5 flex-1">{navLinks}</div>
@@ -219,7 +211,7 @@ export const RootLayout = () => {
                to="/"
                className="flex items-center shrink-0 hover:opacity-80 transition-opacity"
              >
-               <img src={logo} alt="Logo" className="h-15 md:h-18 w-auto object-contain" />
+               <img src={logo} alt={t('nav.title')} className="h-15 md:h-18 w-auto object-contain" />
              </NavLink>
 
             <div className="flex items-center gap-1">
@@ -228,7 +220,7 @@ export const RootLayout = () => {
               <button
                 onClick={() => setMobileOpen(true)}
                 className="w-9 h-9 flex flex-col items-center justify-center gap-[3px] rounded-lg hover:bg-white/5 transition-colors duration-200 ml-1"
-                aria-label="Open navigation menu"
+                aria-label={t('common.openNavigation', 'Open navigation menu')}
               >
                 <span className="block w-[18px] h-[2px] bg-brand-muted rounded-full transition-all duration-300" />
                 <span className="block w-[18px] h-[2px] bg-brand-muted rounded-full transition-all duration-300" />
@@ -264,7 +256,7 @@ export const RootLayout = () => {
               <button
                 onClick={() => setMobileOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors duration-200 text-brand-muted"
-                aria-label="Close navigation menu"
+                aria-label={t('common.closeNavigation', 'Close navigation menu')}
               >
                 <CloseIcon />
               </button>

@@ -11,7 +11,7 @@ You are acting as a Senior Software Engineer with 20+ years of experience. We ar
 - Styling: Tailwind CSS **v4** (CSS-First architecture, NO tailwind.config.js)
 - State Management: Zustand
 - Backend/DB: Supabase
-- Icons: Lucide React
+- Icons: Phosphor Icons (`@phosphor-icons/react`)
 
 ## 📐 Architectural & Coding Rules (MUST FOLLOW STRICTLY)
 

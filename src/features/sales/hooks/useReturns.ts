@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
 import type { ReturnRecord } from '@/types/sales';
 
 export interface ReturnWithOrder extends ReturnRecord {
@@ -10,10 +11,14 @@ export const useReturns = () => {
   return useQuery({
     queryKey: ['returns'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('returns')
-        .select('*, sales_orders(order_date)')
-        .order('created_at', { ascending: false });
+      const { data, error } = await withTimeout(
+        supabase
+          .from('returns')
+          .select('*, sales_orders(order_date)')
+          .order('created_at', { ascending: false }),
+        DEFAULT_TIMEOUT_MS,
+        'Fetch returns',
+      );
       if (error) throw new Error(error.message);
       return (data ?? []) as ReturnWithOrder[];
     },

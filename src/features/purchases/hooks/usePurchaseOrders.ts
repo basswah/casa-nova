@@ -1,40 +1,48 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { toArray, toSingle } from '@/lib/supabase-utils';
-import type { PurchaseOrder } from '@/types/purchases';
+import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
+import { purchaseOrderSchema } from '@/types/schemas';
 
 export const usePurchaseOrders = () => {
-  return useQuery<PurchaseOrder[]>({
+  return useQuery({
     queryKey: ['purchase-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('purchase_orders')
-        .select(`
-          *,
-          supplier:supplier_id (id, name, contact_info)
-        `)
-        .order('created_at', { ascending: false });
+      const { data, error } = await withTimeout(
+        supabase
+          .from('purchase_orders')
+          .select(`
+            *,
+            supplier:supplier_id (id, name, contact_info)
+          `)
+          .order('created_at', { ascending: false }),
+        DEFAULT_TIMEOUT_MS,
+        'Fetch purchase orders',
+      );
       if (error) throw new Error(error.message);
-      return toArray<PurchaseOrder>(data);
+      return toArray(data, purchaseOrderSchema);
     },
   });
 };
 
 export const usePurchaseOrder = (id: string | null) => {
-  return useQuery<PurchaseOrder | null>({
+  return useQuery({
     queryKey: ['purchase-order', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('purchase_orders')
-        .select(`
-          *,
-          supplier:supplier_id (id, name, contact_info)
-        `)
-        .eq('id', id!)
-        .single();
+      const { data, error } = await withTimeout(
+        supabase
+          .from('purchase_orders')
+          .select(`
+            *,
+            supplier:supplier_id (id, name, contact_info)
+          `)
+          .eq('id', id!)
+          .single(),
+        DEFAULT_TIMEOUT_MS,
+        'Fetch purchase order',
+      );
       if (error) throw new Error(error.message);
-      return toSingle<PurchaseOrder | null>(data);
+      return toSingle(data, purchaseOrderSchema);
     },
   });
 };

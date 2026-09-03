@@ -12,7 +12,7 @@ import {
   CurrencyDollar,
   ShoppingCart,
 } from '@phosphor-icons/react';
-import { useSalesOrders, useSalesOrderItems } from '@/features/sales/hooks/useSalesOrders';
+import { useSalesOrders, useSalesOrdersItems } from '@/features/sales/hooks/useSalesOrders';
 import { useCreateReturn } from '@/features/sales/hooks/useCreateReturn';
 import { useProducts } from '@/features/inventory/hooks/useProducts';
 import { useToastStore } from '@/features/shared/store/toastSlice';
@@ -42,6 +42,8 @@ const stagger = {
 export const SalesHistoryPage = () => {
   const { t } = useTranslation();
   const { data: orders = [], isLoading } = useSalesOrders();
+  // Bulk-fetch all order items in a single query (no N+1 per card).
+  const { data: itemsByOrder } = useSalesOrdersItems(orders.map((o) => o.id));
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Record<string, SelectedItem[]>>({});
   const [batchTarget, setBatchTarget] = useState<{ soId: string } | null>(null);
@@ -321,6 +323,7 @@ export const SalesHistoryPage = () => {
                 onReturn={(item) => handleSingleReturn(order.id, item)}
                 onBatchReturn={() => setBatchTarget({ soId: order.id })}
                 productNameMap={productNameMap}
+                items={itemsByOrder?.get(order.id) ?? []}
               />
             ))}
           </motion.div>
@@ -441,11 +444,11 @@ interface OrderCardProps {
   onReturn: (item: SelectedItem) => void;
   onBatchReturn: () => void;
   productNameMap: Map<string, string>;
+  items: SalesOrderItem[];
 }
 
-const OrderCard = ({ order, expanded, onToggle, selectedItems, onToggleItem, onReturn, onBatchReturn, productNameMap }: OrderCardProps) => {
+const OrderCard = ({ order, expanded, onToggle, selectedItems, onToggleItem, onReturn, onBatchReturn, productNameMap, items }: OrderCardProps) => {
   const { t } = useTranslation();
-  const { data: items = [] } = useSalesOrderItems(order.id);
   const activeItems = useMemo(() => items.filter((item) => item.quantity > 0), [items]);
   const allReturned = items.length > 0 && activeItems.length === 0;
 

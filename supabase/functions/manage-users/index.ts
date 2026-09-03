@@ -5,6 +5,52 @@ import { z } from "https://esm.sh/zod@3"
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 
+// Restrict CORS to the app's own origin(s) — never "*".
+const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") || ""
+  // If no origins configured, deny all cross-origin requests.
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : ""
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": "POST, GET, PATCH, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
+  }
+}
+
+// Safe error response — never leaks internal details.
+function errorResponse(status: number, message: string, req: Request) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders(req) },
+  })
+}
+
+function jsonResponse(data: unknown, status: number, req: Request) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders(req) },
+  })
+}
+
+// Map internal errors to safe HTTP status codes without leaking internals.
+function toErrorResponse(err: unknown, req: Request) {
+  const raw = err instanceof Error ? err.message : "Unexpected error"
+  const message = raw.toLowerCase()
+  let status = 400
+  if (message.includes("unauthorized")) status = 401
+  else if (message.includes("forbidden")) status = 403
+  else if (message.includes("not found")) status = 404
+  // Generic, non-leaking message for the client.
+  const safe = status >= 500 ? "Internal server error" : "Request failed"
+  return errorResponse(status, safe, req)
+}
+
 const supabase = createClient(supabaseUrl, serviceRoleKey)
 
 const createUserSchema = z.object({
@@ -34,18 +80,12 @@ async function getUserProfile(userId: string) {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, GET, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    })
+    return new Response(null, { headers: { ...corsHeaders(req) } })
   }
 
   try {
     const authHeader = req.headers.get("Authorization")
-    if (!authHeader) throw new Error("Missing authorization header")
+    if (!authHeader) throw new Error("Unauthorized")
 
     const token = authHeader.replace("Bearer ", "")
     const { data: { user: caller }, error: authError } = await supabase.auth.getUser(token)
@@ -76,9 +116,7 @@ serve(async (req) => {
         profile: profileMap.get(u.id) || null,
       }))
 
-      return new Response(JSON.stringify(result), {
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      })
+      return jsonResponse(result, 200, req)
     }
 
     if (req.method === "POST" && action === "create-user") {
@@ -97,10 +135,7 @@ serve(async (req) => {
 
       if (createError) throw new Error(createError.message)
 
-      return new Response(JSON.stringify({ id: authData.user.id, email: authData.user.email }), {
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        status: 201,
-      })
+      return jsonResponse({ id: authData.user.id, email: authData.user.email }, 201, req)
     }
 
     if (req.method === "PATCH" && action === "update-user") {
@@ -109,6 +144,29 @@ serve(async (req) => {
       if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
       const { id, email, password, displayName, role, isActive } = parsed.data
+
+      // Prevent admin from modifying themselves (self-lockout protection).
+      if (id === caller.id) {
+        if (isActive === false) {
+          throw new Error("Forbidden: cannot disable yourself")
+        }
+        if (role && role !== "admin") {
+          throw new Error("Forbidden: cannot change your own role")
+        }
+      }
+
+      // Prevent disabling or downgrading another admin.
+      if (id !== caller.id) {
+        const targetProfile = await getUserProfile(id)
+        if (targetProfile?.role === "admin") {
+          if (isActive === false) {
+            throw new Error("Forbidden: cannot disable another admin")
+          }
+          if (role && role !== "admin") {
+            throw new Error("Forbidden: cannot downgrade another admin")
+          }
+        }
+      }
 
       type AuthUpdate = { email?: string; password?: string }
       type ProfileUpdate = { display_name?: string; role?: string; is_active?: boolean; updated_at: string }
@@ -131,19 +189,11 @@ serve(async (req) => {
         if (profileError) throw new Error(profileError.message)
       }
 
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      })
+      return jsonResponse({ success: true }, 200, req)
     }
 
-    return new Response(JSON.stringify({ error: "Not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-    })
+    throw new Error("Not found")
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 400,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-    })
+    return toErrorResponse(err, req)
   }
 })

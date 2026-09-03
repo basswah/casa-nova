@@ -1,20 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { toSingle } from '@/lib/supabase-utils';
-import type { PurchaseOrder } from '@/types/purchases';
+import { toSingle, withTimeout, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
+import { purchaseOrderSchema } from '@/types/schemas';
 
 export const useUpdatePurchaseOrderStatus = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'received' | 'cancelled' }) => {
-      const { data, error } = await supabase
-        .from('purchase_orders')
-        .update({ status })
-        .eq('id', id)
-        .select()
-        .single();
+      const { data, error } = await withTimeout(
+        supabase.from('purchase_orders').update({ status }).eq('id', id).select().single(),
+        HEAVY_TIMEOUT_MS,
+        'Update purchase order status',
+      );
       if (error) throw new Error(error.message);
-      return toSingle<PurchaseOrder>(data);
+      return toSingle(data, purchaseOrderSchema);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['purchase-orders'] });

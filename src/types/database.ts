@@ -432,6 +432,32 @@ export interface Database {
           p_total_usd: number;
           p_total_syp: number;
           p_items: Json;
+          p_payment_method?: string;
+        };
+        Returns: Json;
+      };
+      is_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      create_return: {
+        Args: {
+          p_so_id: string;
+          p_reason: string;
+          p_items: Json;
+        };
+        Returns: Json;
+      };
+      bulk_update_syp_prices: {
+        Args: { p_rate: number };
+        Returns: number;
+      };
+      receive_stock: {
+        Args: {
+          p_product_id: string;
+          p_quantity: number;
+          p_unit_cost_usd: number;
+          p_unit_cost_syp: number;
         };
         Returns: Json;
       };

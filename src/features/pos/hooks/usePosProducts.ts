@@ -1,18 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { toArray } from '@/lib/supabase-utils';
-import type { PosProduct } from '@/types/pos';
+import { toArray, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
+import { posProductSchema } from '@/types/schemas';
 
 export const usePosProducts = () => {
-  return useQuery<PosProduct[]>({
+  return useQuery({
     queryKey: ['pos-products'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, name, sku, price_usd, price_syp, cost_usd, cost_syp, quantity')
-        .gt('quantity', 0);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('products')
+          .select('id, name, sku, price_usd, price_syp, quantity, is_consignment')
+          .gt('quantity', 0),
+        DEFAULT_TIMEOUT_MS,
+        'Fetch POS products',
+      );
       if (error) throw new Error(error.message);
-      return toArray<PosProduct>(data);
+      return toArray(data, posProductSchema);
     },
   });
 };

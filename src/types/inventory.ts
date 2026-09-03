@@ -15,6 +15,8 @@ export interface Product {
   cost_usd: number;
   cost_syp: number;
   quantity: number;
+  is_consignment: boolean;
+  supplier_id: string | null;
   created_at: string;
   updated_at: string;
 }

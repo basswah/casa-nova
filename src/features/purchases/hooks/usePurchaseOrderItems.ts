@@ -1,19 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { toArray } from '@/lib/supabase-utils';
-import type { PurchaseOrderItem } from '@/types/purchases';
+import { toArray, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
+import { purchaseOrderItemSchema } from '@/types/schemas';
 
 export const usePurchaseOrderItems = (poId: string | null) => {
-  return useQuery<PurchaseOrderItem[]>({
+  return useQuery({
     queryKey: ['purchase-order-items', poId],
     enabled: !!poId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('purchase_order_items')
-        .select('*')
-        .eq('po_id', poId!);
+      const { data, error } = await withTimeout(
+        supabase.from('purchase_order_items').select('*').eq('po_id', poId!),
+        DEFAULT_TIMEOUT_MS,
+        'Fetch purchase order items',
+      );
       if (error) throw new Error(error.message);
-      return toArray<PurchaseOrderItem>(data);
+      return toArray(data, purchaseOrderItemSchema);
     },
   });
 };

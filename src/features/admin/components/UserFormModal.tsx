@@ -119,9 +119,9 @@ export const UserFormModal = ({ editUser, onClose, onSaved }: UserFormModalProps
               onChange={(e) => setRole(e.target.value as 'admin' | 'cashier' | 'manager')}
               className="w-full px-3 py-2.5 bg-brand-dark border border-brand-border rounded-xl text-sm text-brand-light focus:outline-none focus:ring-2 focus:ring-brand-gold/25 focus:border-brand-gold/60 hover:border-brand-gold/20 transition-all duration-300 ease-out-expo"
             >
-              <option value="cashier">Cashier</option>
-              <option value="manager">Manager</option>
-              <option value="admin">Admin</option>
+              <option value="cashier">{t('users.roles.cashier', 'Cashier')}</option>
+              <option value="manager">{t('users.roles.manager', 'Manager')}</option>
+              <option value="admin">{t('users.roles.admin', 'Admin')}</option>
             </select>
           </div>
 

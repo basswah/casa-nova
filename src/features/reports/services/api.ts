@@ -1,29 +1,34 @@
 import { supabase } from '@/lib/supabase';
-import { toArray } from '@/lib/supabase-utils';
+import { toArray, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
+import { z } from 'zod';
 import type { SalesSummary, ProfitSummary, TopProduct } from '@/types/reports';
 
-interface ProfitItemRow {
-  quantity: number;
-  unit_price_usd: number;
-  unit_price_syp: number;
-  products: { cost_usd: number; cost_syp: number } | null;
-}
+const profitItemRowSchema = z.object({
+  quantity: z.number(),
+  unit_price_usd: z.number(),
+  unit_price_syp: z.number(),
+  products: z.object({ cost_usd: z.number(), cost_syp: z.number() }).nullable(),
+});
 
-interface TopProductRow {
-  product_id: string | null;
-  quantity: number;
-  line_total_usd: number | null;
-  line_total_syp: number | null;
-  products: { name: string; sku: string | null } | null;
-}
+const topProductRowSchema = z.object({
+  product_id: z.string().nullable(),
+  quantity: z.number(),
+  line_total_usd: z.number().nullable(),
+  line_total_syp: z.number().nullable(),
+  products: z.object({ name: z.string(), sku: z.string().nullable() }).nullable(),
+});
 
 export const fetchSalesSummary = async (start: string, end: string): Promise<SalesSummary> => {
-  const { data, error } = await supabase
-    .from('sales_orders')
-    .select('total_usd, total_syp')
-    .eq('status', 'completed')
-    .gte('order_date', start)
-    .lte('order_date', end);
+  const { data, error } = await withTimeout(
+    supabase
+      .from('sales_orders')
+      .select('total_usd, total_syp')
+      .eq('status', 'completed')
+      .gte('order_date', start)
+      .lte('order_date', end),
+    DEFAULT_TIMEOUT_MS,
+    'Sales summary',
+  );
 
   if (error) throw new Error(error.message);
 
@@ -36,28 +41,36 @@ export const fetchSalesSummary = async (start: string, end: string): Promise<Sal
 };
 
 export const fetchProfitSummary = async (start: string, end: string): Promise<ProfitSummary> => {
-  const { data: ids } = await supabase
-    .from('sales_orders')
-    .select('id')
-    .eq('status', 'completed')
-    .gte('order_date', start)
-    .lte('order_date', end);
+  const { data: ids } = await withTimeout(
+    supabase
+      .from('sales_orders')
+      .select('id')
+      .eq('status', 'completed')
+      .gte('order_date', start)
+      .lte('order_date', end),
+    DEFAULT_TIMEOUT_MS,
+    'Profit summary orders',
+  );
 
   if (!ids?.length) return { profitUsd: 0, profitSyp: 0 };
 
-  const { data, error } = await supabase
-    .from('sales_order_items')
-    .select(`
-      quantity,
-      unit_price_usd,
-      unit_price_syp,
-      products!inner(cost_usd, cost_syp)
-    `)
-    .in('so_id', ids.map(o => o.id));
+  const { data, error } = await withTimeout(
+    supabase
+      .from('sales_order_items')
+      .select(`
+        quantity,
+        unit_price_usd,
+        unit_price_syp,
+        products!inner(cost_usd, cost_syp)
+      `)
+      .in('so_id', ids.map(o => o.id)),
+    DEFAULT_TIMEOUT_MS,
+    'Profit summary items',
+  );
 
   if (error) throw new Error(error.message);
 
-  const rows = toArray<ProfitItemRow>(data);
+  const rows = toArray(data, profitItemRowSchema);
   let profitUsd = 0;
   let profitSyp = 0;
 
@@ -72,29 +85,37 @@ export const fetchProfitSummary = async (start: string, end: string): Promise<Pr
 };
 
 export const fetchTopProducts = async (start: string, end: string, limit = 10): Promise<TopProduct[]> => {
-  const { data: orderIds } = await supabase
-    .from('sales_orders')
-    .select('id')
-    .eq('status', 'completed')
-    .gte('order_date', start)
-    .lte('order_date', end);
+  const { data: orderIds } = await withTimeout(
+    supabase
+      .from('sales_orders')
+      .select('id')
+      .eq('status', 'completed')
+      .gte('order_date', start)
+      .lte('order_date', end),
+    DEFAULT_TIMEOUT_MS,
+    'Top products orders',
+  );
 
   if (!orderIds?.length) return [];
 
-  const { data, error } = await supabase
-    .from('sales_order_items')
-    .select(`
-      product_id,
-      quantity,
-      line_total_usd,
-      line_total_syp,
-      products!inner(name, sku)
-    `)
-    .in('so_id', orderIds.map(o => o.id));
+  const { data, error } = await withTimeout(
+    supabase
+      .from('sales_order_items')
+      .select(`
+        product_id,
+        quantity,
+        line_total_usd,
+        line_total_syp,
+        products!inner(name, sku)
+      `)
+      .in('so_id', orderIds.map(o => o.id)),
+    DEFAULT_TIMEOUT_MS,
+    'Top products items',
+  );
 
   if (error) throw new Error(error.message);
 
-  const rows = toArray<TopProductRow>(data);
+  const rows = toArray(data, topProductRowSchema);
   const grouped = new Map<string, { name: string; sku: string | null; qty: number; usd: number; syp: number }>();
 
   for (const item of rows) {

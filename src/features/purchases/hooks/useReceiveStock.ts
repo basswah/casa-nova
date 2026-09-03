@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { withTimeout, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
 
 export const useReceiveStock = () => {
   const qc = useQueryClient();
@@ -16,30 +17,21 @@ export const useReceiveStock = () => {
       unitCostUsd: number;
       unitCostSyp: number;
     }) => {
-      const { data: product, error: err1 } = await supabase
-        .from('products')
-        .select('quantity, cost_usd, cost_syp')
-        .eq('id', productId)
-        .single();
-      if (err1) throw new Error(err1.message);
-
-      const oldQty = product?.quantity ?? 0;
-      const oldCostUsd = product?.cost_usd ?? 0;
-      const oldCostSyp = product?.cost_syp ?? 0;
-      const totalQty = oldQty + quantity;
-
-      let newCostUsd = oldCostUsd;
-      let newCostSyp = oldCostSyp;
-      if (totalQty > 0) {
-        newCostUsd = (oldCostUsd * oldQty + unitCostUsd * quantity) / totalQty;
-        newCostSyp = (oldCostSyp * oldQty + unitCostSyp * quantity) / totalQty;
-      }
-
-      const { error: err2 } = await supabase
-        .from('products')
-        .update({ quantity: totalQty, cost_usd: newCostUsd, cost_syp: newCostSyp })
-        .eq('id', productId);
-      if (err2) throw new Error(err2.message);
+      // Atomic: the receive_stock RPC locks the row and recomputes the
+      // weighted-average cost in a single transaction (no lost updates).
+      const { data, error } = await withTimeout(
+        supabase.rpc('receive_stock', {
+          p_product_id: productId,
+          p_quantity: quantity,
+          p_unit_cost_usd: unitCostUsd,
+          p_unit_cost_syp: unitCostSyp,
+        }),
+        HEAVY_TIMEOUT_MS,
+        'Receive stock',
+      );
+      if (error) throw new Error(error.message);
+      const result = data as { success: boolean; error?: string } | null;
+      if (!result?.success) throw new Error(result?.error || 'Failed to receive stock');
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['products'] });

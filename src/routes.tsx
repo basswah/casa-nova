@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { RootLayout } from '@/layouts/RootLayout';
 import { SkeletonCard } from '@/features/shared/components/Skeleton';
+import { PageErrorBoundary } from '@/features/shared/components/ErrorBoundary';
 
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
 const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })));
@@ -13,6 +14,7 @@ const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage').then(m =
 const ReportsPage = lazy(() => import('@/pages/reports/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const SalesHistoryPage = lazy(() => import('@/pages/sales/SalesHistoryPage').then(m => ({ default: m.SalesHistoryPage })));
 const ReturnsHistoryPage = lazy(() => import('@/pages/sales/ReturnsHistoryPage').then(m => ({ default: m.ReturnsHistoryPage })));
+const ConsignmentSalesPage = lazy(() => import('@/pages/consignment/ConsignmentSalesPage').then(m => ({ default: m.ConsignmentSalesPage })));
 const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then(m => ({ default: m.UsersPage })));
 const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
@@ -23,27 +25,34 @@ const PageLoader = () => (
   </div>
 );
 
+const wrapPage = (name: string, Component: React.LazyExoticComponent<React.FC>) => (
+  <PageErrorBoundary pageName={name}>
+    <Suspense fallback={<PageLoader />}><Component /></Suspense>
+  </PageErrorBoundary>
+);
+
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: wrapPage('login', LoginPage),
   },
   {
     path: '/',
     element: <RootLayout />,
     children: [
-      { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
-      { path: 'inventory', element: <Suspense fallback={<PageLoader />}><InventoryPage /></Suspense> },
-      { path: 'pos', element: <Suspense fallback={<PageLoader />}><PosPage /></Suspense> },
-      { path: 'purchases/suppliers', element: <Suspense fallback={<PageLoader />}><SuppliersPage /></Suspense> },
-      { path: 'purchases', element: <Suspense fallback={<PageLoader />}><PurchaseOrdersPage /></Suspense> },
-      { path: 'purchases/:id', element: <Suspense fallback={<PageLoader />}><PurchaseOrdersPage /></Suspense> },
-      { path: 'settings', element: <Suspense fallback={<PageLoader />}><SettingsPage /></Suspense> },
-      { path: 'reports', element: <Suspense fallback={<PageLoader />}><ReportsPage /></Suspense> },
-      { path: 'sales', element: <Suspense fallback={<PageLoader />}><SalesHistoryPage /></Suspense> },
-      { path: 'returns', element: <Suspense fallback={<PageLoader />}><ReturnsHistoryPage /></Suspense> },
-      { path: 'admin/users', element: <Suspense fallback={<PageLoader />}><UsersPage /></Suspense> },
-      { path: 'profile', element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
+      { index: true, element: wrapPage('dashboard', DashboardPage) },
+      { path: 'inventory', element: wrapPage('inventory', InventoryPage) },
+      { path: 'pos', element: wrapPage('pos', PosPage) },
+      { path: 'purchases/suppliers', element: wrapPage('suppliers', SuppliersPage) },
+      { path: 'purchases', element: wrapPage('purchases', PurchaseOrdersPage) },
+      { path: 'purchases/:id', element: wrapPage('purchase-detail', PurchaseOrdersPage) },
+      { path: 'settings', element: wrapPage('settings', SettingsPage) },
+      { path: 'reports', element: wrapPage('reports', ReportsPage) },
+      { path: 'sales', element: wrapPage('sales', SalesHistoryPage) },
+      { path: 'consignment', element: wrapPage('consignment', ConsignmentSalesPage) },
+      { path: 'returns', element: wrapPage('returns', ReturnsHistoryPage) },
+      { path: 'admin/users', element: wrapPage('users', UsersPage) },
+      { path: 'profile', element: wrapPage('profile', ProfilePage) },
     ],
   },
 ]);
