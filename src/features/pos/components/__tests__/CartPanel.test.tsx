@@ -14,6 +14,7 @@ const mockItem: CartItem = {
     price_usd: 25.00,
     price_syp: 312500,
     quantity: 10,
+    is_consignment: false,
   },
   quantity: 2,
 };
@@ -26,6 +27,7 @@ const mockItemWithCustomPrice: CartItem = {
     price_usd: 10.00,
     price_syp: 125000,
     quantity: 20,
+    is_consignment: false,
   },
   quantity: 3,
   customPriceUsd: 12.00,

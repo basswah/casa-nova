@@ -9,7 +9,7 @@ export const productSchema = z.object({
   cost_usd: z.number({ invalid_type_error: 'Must be a number' }).min(0, 'Must be >= 0'),
   cost_syp: z.number().min(0).optional(),
   quantity: z.number({ invalid_type_error: 'Must be a number' }).int().min(0, 'Must be >= 0'),
-  is_consignment: z.boolean().default(false),
+  is_consignment: z.boolean().optional().default(false),
   supplier_id: z.string().uuid().nullable().optional().or(z.literal('')),
 });
 

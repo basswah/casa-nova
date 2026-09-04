@@ -52,7 +52,7 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
     reset,
     watch,
     control,
-  } = useForm<ProductFormData>({
+  } = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: { name: '', category_id: '', price_usd: 0, cost_usd: 0, quantity: 0, is_consignment: false, supplier_id: null },
   });

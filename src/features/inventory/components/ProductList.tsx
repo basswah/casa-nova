@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { PencilSimple, Trash, Tag, Cube, Minus } from '@phosphor-icons/react';
+import { PencilSimple, Trash, Tag, Cube } from '@phosphor-icons/react';
 import type { Product } from '@/types/inventory';
 
 const LOW_STOCK_THRESHOLD = 5;

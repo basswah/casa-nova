@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
 import { purchaseOrderSchema } from '@/types/schemas';
+import type { PurchaseOrder } from '@/types/purchases';
 
 export const usePurchaseOrders = () => {
   return useQuery({
@@ -19,7 +20,7 @@ export const usePurchaseOrders = () => {
         'Fetch purchase orders',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, purchaseOrderSchema);
+      return toArray(data, purchaseOrderSchema) as PurchaseOrder[];
     },
   });
 };
@@ -42,7 +43,7 @@ export const usePurchaseOrder = (id: string | null) => {
         'Fetch purchase order',
       );
       if (error) throw new Error(error.message);
-      return toSingle(data, purchaseOrderSchema);
+      return toSingle(data, purchaseOrderSchema) as PurchaseOrder;
     },
   });
 };

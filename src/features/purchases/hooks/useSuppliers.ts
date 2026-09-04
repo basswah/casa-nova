@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
 import { supplierSchema } from '@/types/schemas';
+import type { Supplier } from '@/types/purchases';
 
 export const useSuppliers = () => {
   return useQuery({
@@ -13,7 +14,7 @@ export const useSuppliers = () => {
         'Fetch suppliers',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, supplierSchema);
+      return toArray(data, supplierSchema) as Supplier[];
     },
   });
 };

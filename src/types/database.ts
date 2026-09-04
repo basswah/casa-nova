@@ -90,6 +90,8 @@ export interface Database {
           cost_usd: number;
           cost_syp: number;
           quantity: number;
+          is_consignment: boolean;
+          supplier_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -103,6 +105,8 @@ export interface Database {
           cost_usd?: number;
           cost_syp?: number;
           quantity?: number;
+          is_consignment?: boolean;
+          supplier_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -116,6 +120,8 @@ export interface Database {
           cost_usd?: number;
           cost_syp?: number;
           quantity?: number;
+          is_consignment?: boolean;
+          supplier_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -124,6 +130,12 @@ export interface Database {
             foreignKeyName: "products_category_id_fkey";
             columns: ["category_id"];
             referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "products_supplier_id_fkey";
+            columns: ["supplier_id"];
+            referencedRelation: "suppliers";
             referencedColumns: ["id"];
           },
         ];
@@ -225,7 +237,20 @@ export interface Database {
           unit_price_syp?: number;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_po_id_fkey";
+            columns: ["po_id"];
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey";
+            columns: ["product_id"];
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       sales_orders: {
         Row: {
@@ -278,6 +303,9 @@ export interface Database {
           line_total_usd: number;
           line_total_syp: number;
           created_at: string;
+          is_settled: boolean;
+          settled_at: string | null;
+          settled_by: string | null;
         };
         Insert: {
           id?: string;
@@ -287,6 +315,9 @@ export interface Database {
           unit_price_usd?: number;
           unit_price_syp?: number;
           created_at?: string;
+          is_settled?: boolean;
+          settled_at?: string | null;
+          settled_by?: string | null;
         };
         Update: {
           id?: string;
@@ -296,8 +327,24 @@ export interface Database {
           unit_price_usd?: number;
           unit_price_syp?: number;
           created_at?: string;
+          is_settled?: boolean;
+          settled_at?: string | null;
+          settled_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "sales_order_items_so_id_fkey";
+            columns: ["so_id"];
+            referencedRelation: "sales_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sales_order_items_product_id_fkey";
+            columns: ["product_id"];
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       returns: {
         Row: {

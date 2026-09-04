@@ -6,7 +6,6 @@ import {
   MagnifyingGlass,
   Check,
   Clock,
-  CurrencyDollar,
   Package,
   Receipt,
   CaretDown,
@@ -114,30 +113,15 @@ export const ConsignmentSalesPage = () => {
         supplierId,
         itemIds: unsettledItems.map((i) => i.id),
       });
-      addToast({
-        type: 'success',
-        message: t('consignment.settledSuccess', {
+      addToast(
+        t('consignment.settledSuccess', {
           supplier: settlement.supplier_name,
           amount: settlement.unsettled_usd.toFixed(2),
         }),
-      });
+        'success',
+      );
     } catch (err) {
-      addToast({ type: 'error', message: t('consignment.settleError') });
-    }
-  };
-
-  const handleSettleSingle = async (itemId: string, supplierName: string, amount: number) => {
-    try {
-      await settleAllMutation.mutateAsync({
-        supplierId: '',
-        itemIds: [itemId],
-      });
-      addToast({
-        type: 'success',
-        message: t('consignment.itemSettled', { amount: amount.toFixed(2) }),
-      });
-    } catch {
-      addToast({ type: 'error', message: t('consignment.settleError') });
+      addToast(t('consignment.settleError'), 'error');
     }
   };
 

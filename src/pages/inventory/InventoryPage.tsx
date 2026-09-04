@@ -2,7 +2,6 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Package,
   WarningCircle,
   CurrencyDollar,
   Tag,
@@ -21,7 +20,6 @@ import { CategoryManager } from '@/features/inventory/components/CategoryManager
 import { DeleteConfirmDialog } from '@/features/shared/components/DeleteConfirmDialog';
 import { Skeleton } from '@/features/shared/components/Skeleton';
 import { EmptyState } from '@/features/shared/components/EmptyState';
-import { useToastStore } from '@/features/shared/store/toastSlice';
 import type { Product, NewProduct } from '@/types/inventory';
 
 const easeOutExpo: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -44,7 +42,7 @@ interface KpiCardProps {
   delay?: number;
 }
 
-const KpiCard = ({ icon, label, value, trend, accent = 'default', delay = 0 }: KpiCardProps) => {
+const KpiCard = ({ icon, label, value, trend, accent = 'default' }: KpiCardProps) => {
   const accentStyles = {
     default: {
       container: 'bg-gradient-to-br from-brand-dark/90 to-brand-dark/60 border border-brand-border/30',
@@ -107,7 +105,6 @@ const KpiCard = ({ icon, label, value, trend, accent = 'default', delay = 0 }: K
 
 export const InventoryPage = () => {
   const { t } = useTranslation();
-  const addToast = useToastStore((s) => s.addToast);
   const { data: products = [], isLoading, error } = useProducts();
   const { data: categories = [] } = useCategories();
   const createProductMutation = useCreateProduct();

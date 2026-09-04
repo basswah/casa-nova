@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
 import { salesOrderSchema, salesOrderItemSchema } from '@/types/schemas';
-import type { SalesOrderItem } from '@/types/sales';
+import type { SalesOrder, SalesOrderItem } from '@/types/sales';
 
 export const useSalesOrders = () => {
   return useQuery({
@@ -14,7 +14,7 @@ export const useSalesOrders = () => {
         'Fetch sales orders',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, salesOrderSchema);
+      return toArray(data, salesOrderSchema) as SalesOrder[];
     },
   });
 };
@@ -29,7 +29,7 @@ export const useSalesOrderItems = (soId: string) => {
         'Fetch sales order items',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, salesOrderItemSchema);
+      return toArray(data, salesOrderItemSchema) as SalesOrderItem[];
     },
     enabled: !!soId,
   });
@@ -47,7 +47,7 @@ export const useSalesOrdersItems = (soIds: string[]) => {
       );
       if (error) throw new Error(error.message);
       const grouped = new Map<string, SalesOrderItem[]>();
-      for (const item of toArray(data, salesOrderItemSchema)) {
+      for (const item of toArray(data, salesOrderItemSchema) as SalesOrderItem[]) {
         const list = grouped.get(item.so_id) ?? [];
         list.push(item);
         grouped.set(item.so_id, list);

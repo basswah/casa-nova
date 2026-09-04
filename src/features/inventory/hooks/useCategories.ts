@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
 import { categorySchema } from '@/types/schemas';
+import type { Category } from '@/types/inventory';
 
 export const useCategories = () => {
   return useQuery({
@@ -13,7 +14,7 @@ export const useCategories = () => {
         'Fetch categories',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, categorySchema);
+      return toArray(data, categorySchema) as Category[];
     },
   });
 };
@@ -28,7 +29,7 @@ export const useCreateCategory = () => {
         'Create category',
       );
       if (error) throw new Error(error.message);
-      return toSingle(data, categorySchema);
+      return toSingle(data, categorySchema) as Category;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
@@ -46,7 +47,7 @@ export const useUpdateCategory = () => {
         'Update category',
       );
       if (error) throw new Error(error.message);
-      return toSingle(data, categorySchema);
+      return toSingle(data, categorySchema) as Category;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });

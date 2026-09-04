@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
 import { purchaseNeedSchema } from '@/types/schemas';
-import type { NewPurchaseNeed, UpdatePurchaseNeed } from '@/types/purchases';
+import type { PurchaseNeed, NewPurchaseNeed, UpdatePurchaseNeed } from '@/types/purchases';
 
 export const usePurchaseNeeds = () => {
   return useQuery({
@@ -17,7 +17,7 @@ export const usePurchaseNeeds = () => {
         'Fetch purchase needs',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, purchaseNeedSchema);
+      return toArray(data, purchaseNeedSchema) as PurchaseNeed[];
     },
   });
 };
@@ -32,7 +32,7 @@ export const useCreatePurchaseNeed = () => {
         'Create purchase need',
       );
       if (error) throw new Error(error.message);
-      return toSingle(data, purchaseNeedSchema);
+      return toSingle(data, purchaseNeedSchema) as PurchaseNeed;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['purchase-needs'] });
@@ -50,7 +50,7 @@ export const useUpdatePurchaseNeed = () => {
         'Update purchase need',
       );
       if (error) throw new Error(error.message);
-      return toSingle(data, purchaseNeedSchema);
+      return toSingle(data, purchaseNeedSchema) as PurchaseNeed;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['purchase-needs'] });

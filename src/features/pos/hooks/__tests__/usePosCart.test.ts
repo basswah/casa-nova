@@ -10,6 +10,7 @@ const mockProduct: PosProduct = {
   price_usd: 25.00,
   price_syp: 312500,
   quantity: 10,
+  is_consignment: false,
 };
 
 const mockProduct2: PosProduct = {
@@ -19,6 +20,7 @@ const mockProduct2: PosProduct = {
   price_usd: 50.00,
   price_syp: 625000,
   quantity: 5,
+  is_consignment: false,
 };
 
 describe('usePosCart', () => {

@@ -22,7 +22,7 @@ export const usePurchaseReturns = () => {
         'Fetch purchase returns',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, purchaseReturnSchema);
+      return toArray(data, purchaseReturnSchema) as PurchaseReturn[];
     },
   });
 };

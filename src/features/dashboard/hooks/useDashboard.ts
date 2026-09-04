@@ -19,7 +19,7 @@ export interface DashboardData {
 export const useDashboard = () => {
   return useQuery<DashboardData>({
     queryKey: ['dashboard'],
-    queryFn: async () => {
+    queryFn: async (): Promise<DashboardData> => {
       const today = new Date().toISOString().split('T')[0];
 
       const [
@@ -65,8 +65,8 @@ export const useDashboard = () => {
       if (recentPOsError) throw new Error(recentPOsError.message);
 
       const todayOrdersArray = toArray(todayOrders, salesOrderSchema);
-      const todaySalesUsd = todayOrdersArray.reduce((sum, o) => sum + (o.total_usd || 0), 0);
-      const todaySalesSyp = todayOrdersArray.reduce((sum, o) => sum + (o.total_syp || 0), 0);
+      const todaySalesUsd = todayOrdersArray.reduce((sum, o) => sum + (Number(o.total_usd) || 0), 0);
+      const todaySalesSyp = todayOrdersArray.reduce((sum, o) => sum + (Number(o.total_syp) || 0), 0);
 
       return {
         todaySalesUsd,
@@ -74,8 +74,8 @@ export const useDashboard = () => {
         todaySalesCount: todayOrdersArray.length,
         totalProducts: totalProducts ?? 0,
         lowStockCount: lowStockProducts?.length ?? 0,
-        recentSales: toArray(recentSales, salesOrderSchema),
-        recentPurchaseOrders: toArray(recentPOs, purchaseOrderSchema),
+        recentSales: toArray(recentSales, salesOrderSchema) as SalesOrder[],
+        recentPurchaseOrders: toArray(recentPOs, purchaseOrderSchema) as PurchaseOrder[],
       };
     },
   });

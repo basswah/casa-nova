@@ -33,61 +33,87 @@ export interface SupplierSettlement {
   unsettled_usd: number;
 }
 
+interface RawItem {
+  id: string;
+  so_id: string;
+  product_id: string | null;
+  quantity: number;
+  unit_price_usd: number;
+  unit_price_syp: number;
+  line_total_usd: number;
+  line_total_syp: number;
+  is_settled?: boolean;
+  settled_at?: string | null;
+}
+
 const fetchConsignmentSales = async (): Promise<ConsignmentSaleItem[]> => {
-  const { data, error } = await withTimeout(
+  const { data: items, error: itemsError } = await withTimeout(
     supabase
       .from('sales_order_items')
-      .select(`
-        id,
-        so_id,
-        product_id,
-        quantity,
-        unit_price_usd,
-        unit_price_syp,
-        line_total_usd,
-        line_total_syp,
-        is_settled,
-        settled_at,
-        product:products!product_id (
-          name,
-          sku,
-          supplier_id,
-          supplier:suppliers!supplier_id (name)
-        ),
-        sales_order:sales_orders!so_id (order_date)
-      `)
+      .select('*')
       .order('created_at', { ascending: false }),
     DEFAULT_TIMEOUT_MS,
-    'Fetch consignment sales',
+    'Fetch consignment sale items',
   );
 
-  if (error) throw new Error(error.message);
+  if (itemsError) throw new Error(itemsError.message);
 
-  const items: ConsignmentSaleItem[] = [];
+  const rawItems = (items ?? []) as unknown as RawItem[];
+  if (rawItems.length === 0) return [];
 
-  for (const item of data ?? []) {
-    if (item.product && item.product.supplier_id) {
-      items.push({
-        id: item.id,
-        so_id: item.so_id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price_usd: item.unit_price_usd,
-        unit_price_syp: item.unit_price_syp,
-        line_total_usd: item.line_total_usd,
-        line_total_syp: item.line_total_syp,
-        is_settled: item.is_settled ?? false,
-        settled_at: item.settled_at ?? null,
-        product_name: (item.product as Record<string, unknown>).name as string,
-        product_sku: (item.product as Record<string, unknown>).sku as string | null,
-        supplier_id: (item.product as Record<string, unknown>).supplier_id as string,
-        supplier_name: ((item.product as Record<string, unknown>).supplier as Record<string, unknown>)?.name as string | null,
-        order_date: (item.sales_order as Record<string, unknown>)?.order_date as string,
-      });
+  const productIds = [...new Set(rawItems.map((i) => i.product_id).filter(Boolean))] as string[];
+  const soIds = [...new Set(rawItems.map((i) => i.so_id))];
+
+  const [{ data: products }, { data: orders }, { data: suppliers }] = await Promise.all([
+    supabase.from('products').select('id, name, sku, supplier_id, is_consignment').in('id', productIds),
+    supabase.from('sales_orders').select('id, order_date').in('id', soIds),
+    supabase.from('suppliers').select('id, name'),
+  ]);
+
+  const productMap = new Map<string, { name: string; sku: string | null; supplier_id: string | null }>();
+  for (const p of (products ?? []) as Array<{ id: string; name: string; sku: string | null; supplier_id: string | null; is_consignment: boolean }>) {
+    if (p.is_consignment) {
+      productMap.set(p.id, { name: p.name, sku: p.sku, supplier_id: p.supplier_id });
     }
   }
 
-  return items;
+  const orderMap = new Map<string, string>();
+  for (const o of (orders ?? []) as Array<{ id: string; order_date: string }>) {
+    orderMap.set(o.id, o.order_date);
+  }
+
+  const supplierMap = new Map<string, string>();
+  for (const s of (suppliers ?? []) as Array<{ id: string; name: string }>) {
+    supplierMap.set(s.id, s.name);
+  }
+
+  const result: ConsignmentSaleItem[] = [];
+
+  for (const item of rawItems) {
+    if (!item.product_id) continue;
+    const product = productMap.get(item.product_id);
+    if (!product) continue;
+
+    result.push({
+      id: item.id,
+      so_id: item.so_id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price_usd: Number(item.unit_price_usd) || 0,
+      unit_price_syp: Number(item.unit_price_syp) || 0,
+      line_total_usd: Number(item.line_total_usd) || 0,
+      line_total_syp: Number(item.line_total_syp) || 0,
+      is_settled: item.is_settled ?? false,
+      settled_at: item.settled_at ?? null,
+      product_name: product.name,
+      product_sku: product.sku,
+      supplier_id: product.supplier_id,
+      supplier_name: product.supplier_id ? (supplierMap.get(product.supplier_id) ?? null) : null,
+      order_date: orderMap.get(item.so_id) ?? '',
+    });
+  }
+
+  return result;
 };
 
 export const useConsignmentSales = () => {
@@ -127,7 +153,7 @@ export const useSettleAllForSupplier = () => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ supplierId, itemIds }: { supplierId: string; itemIds: string[] }) => {
+    mutationFn: async ({ supplierId: _supplierId, itemIds }: { supplierId: string; itemIds: string[] }) => {
       const { error } = await withTimeout(
         supabase
           .from('sales_order_items')
@@ -135,8 +161,7 @@ export const useSettleAllForSupplier = () => {
             is_settled: true,
             settled_at: new Date().toISOString(),
           })
-          .in('id', itemIds)
-          .eq('product_id', supplierId),
+          .in('id', itemIds),
         DEFAULT_TIMEOUT_MS,
         'Settle all for supplier',
       );

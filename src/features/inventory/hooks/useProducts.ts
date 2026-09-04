@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray, toSingle, withTimeout, DEFAULT_TIMEOUT_MS, HEAVY_TIMEOUT_MS } from '@/lib/supabase-utils';
 import { productSchema } from '@/types/schemas';
-import type { NewProduct, UpdateProduct } from '@/types/inventory';
+import type { Product, NewProduct, UpdateProduct } from '@/types/inventory';
 
 export const useProducts = () => {
   return useQuery({
@@ -29,7 +29,7 @@ export const useProducts = () => {
         'Fetch products',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, productSchema);
+      return toArray(data, productSchema) as Product[];
     },
   });
 };
@@ -40,12 +40,12 @@ export const useCreateProduct = () => {
   return useMutation({
     mutationFn: async (payload: NewProduct) => {
       const { data, error } = await withTimeout(
-        supabase.from('products').insert(payload).select().single(),
+        supabase.from('products').insert(payload as unknown as never).select().single(),
         HEAVY_TIMEOUT_MS,
         'Create product',
       );
       if (error) throw new Error(error.message);
-      return toSingle(data, productSchema);
+      return toSingle(data, productSchema) as Product;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -60,12 +60,12 @@ export const useUpdateProduct = () => {
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: UpdateProduct }) => {
       const { data, error } = await withTimeout(
-        supabase.from('products').update(payload).eq('id', id).select().single(),
+        supabase.from('products').update(payload as unknown as never).eq('id', id).select().single(),
         HEAVY_TIMEOUT_MS,
         'Update product',
       );
       if (error) throw new Error(error.message);
-      return toSingle(data, productSchema);
+      return toSingle(data, productSchema) as Product;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });

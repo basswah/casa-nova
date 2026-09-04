@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toArray, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
 import { purchaseOrderItemSchema } from '@/types/schemas';
+import type { PurchaseOrderItem } from '@/types/purchases';
 
 export const usePurchaseOrderItems = (poId: string | null) => {
   return useQuery({
@@ -14,7 +15,7 @@ export const usePurchaseOrderItems = (poId: string | null) => {
         'Fetch purchase order items',
       );
       if (error) throw new Error(error.message);
-      return toArray(data, purchaseOrderItemSchema);
+      return toArray(data, purchaseOrderItemSchema) as PurchaseOrderItem[];
     },
   });
 };
