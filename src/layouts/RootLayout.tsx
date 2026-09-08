@@ -174,16 +174,16 @@ export const RootLayout = () => {
       </a>
       <ToastContainer />
 
-      {/* Desktop navbar */}
-      <nav className="bg-brand-dark border-b border-brand-border hidden lg:block">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* Desktop navbar - full links only on xl+ */}
+      <nav className="bg-brand-dark border-b border-brand-border hidden xl:block">
+        <div className="px-5 md:px-8 lg:px-12 max-w-[1600px] mx-auto">
           <div className="flex items-center justify-between h-16">
-<NavLink
-               to="/"
-               className="flex items-center shrink-0 mr-10 hover:opacity-80 transition-opacity"
-             >
-               <img src={logo} alt={t('nav.title')} className="h-15 md:h-18 w-auto object-contain" />
-             </NavLink>
+            <NavLink
+              to="/"
+              className="flex items-center shrink-0 hover:opacity-80 transition-opacity"
+            >
+              <img src={logo} alt={t('nav.title')} className="h-10 md:h-11 w-auto object-contain" />
+            </NavLink>
 
             <div className="flex items-center gap-0.5 flex-1">{navLinks}</div>
 
@@ -203,23 +203,23 @@ export const RootLayout = () => {
         </div>
       </nav>
 
-      {/* Mobile navbar */}
-      <nav className="bg-brand-dark border-b border-brand-border lg:hidden">
-        <div className="px-4">
+      {/* Mobile & Tablet navbar - visible below xl */}
+      <nav className="bg-brand-dark border-b border-brand-border xl:hidden">
+        <div className="px-5 md:px-8 lg:px-12">
           <div className="flex items-center justify-between h-14">
-<NavLink
-               to="/"
-               className="flex items-center shrink-0 hover:opacity-80 transition-opacity"
-             >
-               <img src={logo} alt={t('nav.title')} className="h-15 md:h-18 w-auto object-contain" />
-             </NavLink>
+            <NavLink
+              to="/"
+              className="flex items-center shrink-0 hover:opacity-80 transition-opacity"
+            >
+              <img src={logo} alt={t('nav.title')} className="h-9 md:h-10 w-auto object-contain" />
+            </NavLink>
 
             <div className="flex items-center gap-1">
               <ThemeSwitcher />
               <LanguageSwitcher />
               <button
                 onClick={() => setMobileOpen(true)}
-                className="w-9 h-9 flex flex-col items-center justify-center gap-[3px] rounded-lg hover:bg-white/5 transition-colors duration-200 ml-1"
+                className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors duration-200 ml-1"
                 aria-label={t('common.openNavigation', 'Open navigation menu')}
               >
                 <span className="block w-[18px] h-[2px] bg-brand-muted rounded-full transition-all duration-300" />
@@ -231,9 +231,9 @@ export const RootLayout = () => {
         </div>
       </nav>
 
-      {/* Mobile drawer */}
+      {/* Drawer - visible below xl */}
       <div
-        className={`fixed inset-0 z-50 transition-all duration-300 ease-out-expo lg:hidden ${
+        className={`fixed inset-0 z-50 transition-all duration-300 ease-out-expo xl:hidden ${
           mobileOpen ? "visible" : "invisible"
         }`}
       >
@@ -244,7 +244,7 @@ export const RootLayout = () => {
           onClick={() => setMobileOpen(false)}
         />
         <div
-          className={`absolute top-0 right-0 h-full w-[280px] max-w-[85vw] bg-brand-dark border-l border-brand-border shadow-[var(--shadow-floating)] transition-transform duration-300 ease-out-expo ${
+          className={`absolute top-0 right-0 h-full w-[320px] max-w-[85vw] bg-brand-dark border-l border-brand-border shadow-[var(--shadow-floating)] transition-transform duration-300 ease-out-expo ${
             mobileOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -255,7 +255,7 @@ export const RootLayout = () => {
               </span>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors duration-200 text-brand-muted"
+                className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors duration-200 text-brand-muted"
                 aria-label={t('common.closeNavigation', 'Close navigation menu')}
               >
                 <CloseIcon />

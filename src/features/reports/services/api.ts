@@ -1,28 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import { toArray, withTimeout, DEFAULT_TIMEOUT_MS } from '@/lib/supabase-utils';
-import { z } from 'zod';
 import type { SalesSummary, ProfitSummary, TopProduct } from '@/types/reports';
-
-const profitItemRowSchema = z.object({
-  quantity: z.number(),
-  unit_price_usd: z.number(),
-  unit_price_syp: z.number(),
-  products: z.object({ cost_usd: z.number(), cost_syp: z.number() }).nullable(),
-});
-
-const topProductRowSchema = z.object({
-  product_id: z.string().nullable(),
-  quantity: z.number(),
-  line_total_usd: z.number().nullable(),
-  line_total_syp: z.number().nullable(),
-  products: z.object({ name: z.string(), sku: z.string().nullable() }).nullable(),
-});
 
 export const fetchSalesSummary = async (start: string, end: string): Promise<SalesSummary> => {
   const { data, error } = await withTimeout(
     supabase
       .from('sales_orders')
-      .select('total_usd, total_syp')
+      .select('total_usd')
       .eq('status', 'completed')
       .gte('order_date', start)
       .lte('order_date', end),
@@ -35,7 +19,6 @@ export const fetchSalesSummary = async (start: string, end: string): Promise<Sal
   const rows = data ?? [];
   return {
     totalSalesUsd: rows.reduce((sum, r) => sum + (r.total_usd ?? 0), 0),
-    totalSalesSyp: rows.reduce((sum, r) => sum + (r.total_syp ?? 0), 0),
     transactionCount: rows.length,
   };
 };
@@ -52,36 +35,42 @@ export const fetchProfitSummary = async (start: string, end: string): Promise<Pr
     'Profit summary orders',
   );
 
-  if (!ids?.length) return { profitUsd: 0, profitSyp: 0 };
+  if (!ids?.length) return { profitUsd: 0 };
 
-  const { data, error } = await withTimeout(
+  const { data: items, error: itemsError } = await withTimeout(
     supabase
       .from('sales_order_items')
-      .select(`
-        quantity,
-        unit_price_usd,
-        unit_price_syp,
-        products!inner(cost_usd, cost_syp)
-      `)
+      .select('product_id, quantity, unit_price_usd')
       .in('so_id', ids.map(o => o.id)),
     DEFAULT_TIMEOUT_MS,
     'Profit summary items',
   );
 
-  if (error) throw new Error(error.message);
+  if (itemsError) throw new Error(itemsError.message);
 
-  const rows = toArray(data, profitItemRowSchema);
-  let profitUsd = 0;
-  let profitSyp = 0;
+  const rawItems = toArray(items) as Array<{ product_id: string | null; quantity: number; unit_price_usd: number }>;
+  if (!rawItems.length) return { profitUsd: 0 };
 
-  for (const item of rows) {
-    const costUsd = item.products?.cost_usd ?? 0;
-    const costSyp = item.products?.cost_syp ?? 0;
-    profitUsd += item.quantity * (item.unit_price_usd - costUsd);
-    profitSyp += item.quantity * (item.unit_price_syp - costSyp);
+  const productIds = [...new Set(rawItems.map(i => i.product_id).filter(Boolean))] as string[];
+  const { data: products } = await withTimeout(
+    supabase.from('products').select('id, cost_usd').in('id', productIds),
+    DEFAULT_TIMEOUT_MS,
+    'Profit summary products',
+  );
+
+  const costMap = new Map<string, number>();
+  for (const p of (products ?? []) as Array<{ id: string; cost_usd: number }>) {
+    costMap.set(p.id, Number(p.cost_usd) || 0);
   }
 
-  return { profitUsd, profitSyp };
+  let profitUsd = 0;
+
+  for (const item of rawItems) {
+    const costUsd = item.product_id ? (costMap.get(item.product_id) ?? 0) : 0;
+    profitUsd += item.quantity * (item.unit_price_usd - costUsd);
+  }
+
+  return { profitUsd };
 };
 
 export const fetchTopProducts = async (start: string, end: string, limit = 10): Promise<TopProduct[]> => {
@@ -101,13 +90,7 @@ export const fetchTopProducts = async (start: string, end: string, limit = 10): 
   const { data, error } = await withTimeout(
     supabase
       .from('sales_order_items')
-      .select(`
-        product_id,
-        quantity,
-        line_total_usd,
-        line_total_syp,
-        products!inner(name, sku)
-      `)
+      .select('product_id, quantity, unit_price_usd, line_total_usd, line_total_syp')
       .in('so_id', orderIds.map(o => o.id)),
     DEFAULT_TIMEOUT_MS,
     'Top products items',
@@ -115,20 +98,40 @@ export const fetchTopProducts = async (start: string, end: string, limit = 10): 
 
   if (error) throw new Error(error.message);
 
-  const rows = toArray(data, topProductRowSchema);
-  const grouped = new Map<string, { name: string; sku: string | null; qty: number; usd: number; syp: number }>();
+  const rawItems = toArray(data) as Array<{
+    product_id: string | null; quantity: number;
+    unit_price_usd: number;
+    line_total_usd: number | null; line_total_syp: number | null;
+  }>;
 
-  for (const item of rows) {
+  const productIds = [...new Set(rawItems.map(i => i.product_id).filter(Boolean))] as string[];
+  const { data: products } = await withTimeout(
+    supabase.from('products').select('id, name, sku, cost_usd').in('id', productIds),
+    DEFAULT_TIMEOUT_MS,
+    'Top products details',
+  );
+
+  const productMap = new Map<string, { name: string; sku: string | null; cost_usd: number }>();
+  for (const p of (products ?? []) as Array<{ id: string; name: string; sku: string | null; cost_usd: number }>) {
+    productMap.set(p.id, { name: p.name, sku: p.sku, cost_usd: Number(p.cost_usd) || 0 });
+  }
+
+  const grouped = new Map<string, { name: string; sku: string | null; qty: number; usd: number; syp: number; profitUsd: number }>();
+
+  for (const item of rawItems) {
     const pid = item.product_id ?? '';
     if (!pid) continue;
+    const prod = productMap.get(pid);
     const existing = grouped.get(pid) ?? {
-      name: item.products?.name ?? '',
-      sku: item.products?.sku ?? null,
-      qty: 0, usd: 0, syp: 0,
+      name: prod?.name ?? '',
+      sku: prod?.sku ?? null,
+      qty: 0, usd: 0, syp: 0, profitUsd: 0,
     };
+    const costUsd = prod?.cost_usd ?? 0;
     existing.qty += item.quantity;
     existing.usd += item.line_total_usd ?? 0;
     existing.syp += item.line_total_syp ?? 0;
+    existing.profitUsd += item.quantity * (item.unit_price_usd - costUsd);
     grouped.set(pid, existing);
   }
 
@@ -140,6 +143,7 @@ export const fetchTopProducts = async (start: string, end: string, limit = 10): 
       quantitySold: g.qty,
       totalUsd: g.usd,
       totalSyp: g.syp,
+      profitUsd: g.profitUsd,
     }))
     .sort((a, b) => b.totalUsd - a.totalUsd)
     .slice(0, limit);

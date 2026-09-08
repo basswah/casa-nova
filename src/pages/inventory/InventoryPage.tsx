@@ -177,31 +177,32 @@ export const InventoryPage = () => {
   }, [deleteTarget, deleteProductMutation]);
 
   return (
-    <div className="min-h-[100dvh] max-w-7xl mx-auto">
-      {/* Header Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: easeOutExpo }}
-        className="pt-8 pb-6"
-      >
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold/20 to-brand-gold/5 border border-brand-gold/20 flex items-center justify-center">
-                <Archive size={20} weight="duotone" className="text-brand-gold" />
+    <div className="min-h-[100dvh]">
+      <div className="px-5 md:px-8 lg:px-12 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1600px] mx-auto">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: easeOutExpo }}
+          className="mb-8 md:mb-12"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center">
+                  <Archive size={18} weight="duotone" className="text-brand-gold" />
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-brand-light tracking-tight">
+                  {t('inventory.title')}
+                </h1>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-brand-light tracking-tight">
-                {t('inventory.title')}
-              </h1>
-            </div>
-            <p className="text-sm text-brand-muted/50 ml-[52px]">
-              {filtered.length > 0 && (
-                <span>
-                  {filtered.length} {t('common.products', { defaultValue: 'Products' })}
-                  {search && ` matching "${search}"`}
-                </span>
-              )}
+              <p className="text-sm text-brand-muted/50 ml-[46px]">
+                {filtered.length > 0 && (
+                  <span>
+                    {filtered.length} {t('common.products', { defaultValue: 'Products' })}
+                    {search && ` matching "${search}"`}
+                  </span>
+                )}
               {filtered.length === 0 && stats.totalProducts > 0 && 'No products match your filter'}
               {stats.totalProducts === 0 && 'Start by adding your first product'}
             </p>
@@ -466,6 +467,7 @@ export const InventoryPage = () => {
         onClose={() => setDeleteTarget(null)}
         loading={deleteProductMutation.isPending}
       />
+      </div>
     </div>
   );
 };

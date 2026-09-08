@@ -25,7 +25,7 @@ describe('SalesSummaryCard', () => {
 
   it('displays sales totals', () => {
     renderCard({
-      data: { totalSalesUsd: 1250.50, totalSalesSyp: 15631250, transactionCount: 42 },
+      data: { totalSalesUsd: 1250.50, transactionCount: 42 },
     });
     expect(screen.getByText('42')).toBeInTheDocument();
     expect(screen.queryByText(i18n.t('common.noData'))).not.toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('SalesSummaryCard', () => {
 
   it('displays transaction count', () => {
     renderCard({
-      data: { totalSalesUsd: 100, totalSalesSyp: 1250000, transactionCount: 5 },
+      data: { totalSalesUsd: 100, transactionCount: 5 },
     });
     expect(screen.getByText('5')).toBeInTheDocument();
   });

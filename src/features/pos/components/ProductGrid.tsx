@@ -17,8 +17,8 @@ const stagger = {
 };
 
 const cardVariant = {
-  initial: { opacity: 0, y: 16, filter: 'blur(6px)' },
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
 } satisfies Variants;
 
 export const ProductGrid = ({ products, onAddToCart, search, onSearchChange }: ProductGridProps) => {

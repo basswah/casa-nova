@@ -51,28 +51,28 @@ export const ConsignmentSalesPage = () => {
     for (const [supplierId, items] of grouped) {
       const supplierName = items[0]?.supplier_name ?? t('consignment.unknownSupplier', 'Unknown Supplier');
       const total_quantity = items.reduce((sum, i) => sum + i.quantity, 0);
-      const total_usd = items.reduce((sum, i) => sum + i.line_total_usd, 0);
-      const total_syp = items.reduce((sum, i) => sum + i.line_total_syp, 0);
+      const total_cost_usd = items.reduce((sum, i) => sum + (i.cost_usd * i.quantity), 0);
+      const total_cost_syp = items.reduce((sum, i) => sum + (i.cost_syp * i.quantity), 0);
       const settled_quantity = items.filter((i) => i.is_settled).reduce((sum, i) => sum + i.quantity, 0);
       const unsettled_quantity = items.filter((i) => !i.is_settled).reduce((sum, i) => sum + i.quantity, 0);
-      const settled_usd = items.filter((i) => i.is_settled).reduce((sum, i) => sum + i.line_total_usd, 0);
-      const unsettled_usd = items.filter((i) => !i.is_settled).reduce((sum, i) => sum + i.line_total_usd, 0);
+      const settled_cost_usd = items.filter((i) => i.is_settled).reduce((sum, i) => sum + (i.cost_usd * i.quantity), 0);
+      const unsettled_cost_usd = items.filter((i) => !i.is_settled).reduce((sum, i) => sum + (i.cost_usd * i.quantity), 0);
 
       result.push({
         supplier_id: supplierId,
         supplier_name: supplierName,
         items,
         total_quantity,
-        total_usd,
-        total_syp,
+        total_cost_usd,
+        total_cost_syp,
         settled_quantity,
         unsettled_quantity,
-        settled_usd,
-        unsettled_usd,
+        settled_cost_usd,
+        unsettled_cost_usd,
       });
     }
 
-    return result.sort((a, b) => b.unsettled_usd - a.unsettled_usd);
+    return result.sort((a, b) => b.unsettled_cost_usd - a.unsettled_cost_usd);
   }, [sales, t]);
 
   const filteredSettlements = useMemo(() => {
@@ -90,12 +90,12 @@ export const ConsignmentSalesPage = () => {
   }, [settlements, search]);
 
   const totalUnsettled = useMemo(
-    () => settlements.reduce((sum, s) => sum + s.unsettled_usd, 0),
+    () => settlements.reduce((sum, s) => sum + s.unsettled_cost_usd, 0),
     [settlements],
   );
 
   const totalSettled = useMemo(
-    () => settlements.reduce((sum, s) => sum + s.settled_usd, 0),
+    () => settlements.reduce((sum, s) => sum + s.settled_cost_usd, 0),
     [settlements],
   );
 
@@ -116,7 +116,7 @@ export const ConsignmentSalesPage = () => {
       addToast(
         t('consignment.settledSuccess', {
           supplier: settlement.supplier_name,
-          amount: settlement.unsettled_usd.toFixed(2),
+          amount: settlement.unsettled_cost_usd.toFixed(2),
         }),
         'success',
       );
@@ -126,30 +126,31 @@ export const ConsignmentSalesPage = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] max-w-7xl mx-auto">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: easeOutExpo }}
-        className="pt-8 pb-6"
-      >
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/20 flex items-center justify-center">
-                <Tag size={20} weight="duotone" className="text-amber-400" />
+    <div className="min-h-[100dvh]">
+      <div className="px-5 md:px-8 lg:px-12 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1600px] mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: easeOutExpo }}
+          className="mb-8 md:mb-12"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center">
+                  <Tag size={18} weight="duotone" className="text-brand-gold" />
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-brand-light tracking-tight">
+                  {t('consignment.title', 'Consignment Sales')}
+                </h1>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-brand-light tracking-tight">
-                {t('consignment.title', 'Consignment Sales')}
-              </h1>
+              <p className="text-sm text-brand-muted/50 ml-[46px]">
+                {t('consignment.subtitle', 'Track and settle consignment sales with suppliers')}
+              </p>
             </div>
-            <p className="text-sm text-brand-muted/50 ml-[52px]">
-              {t('consignment.subtitle', 'Track and settle consignment sales with suppliers')}
-            </p>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
       {/* Summary Cards */}
       <motion.div
@@ -290,7 +291,7 @@ export const ConsignmentSalesPage = () => {
         <div className="space-y-4">
           {filteredSettlements.map((settlement) => {
             const isExpanded = expandedSupplier === settlement.supplier_id;
-            const hasUnsettled = settlement.unsettled_usd > 0;
+            const hasUnsettled = settlement.unsettled_cost_usd > 0;
 
             return (
               <motion.div
@@ -321,11 +322,11 @@ export const ConsignmentSalesPage = () => {
                     <div className="text-right hidden sm:block">
                       {hasUnsettled ? (
                         <p className="text-lg font-bold text-amber-300 font-mono">
-                          ${settlement.unsettled_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${settlement.unsettled_cost_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                       ) : (
                         <p className="text-lg font-bold text-emerald-300 font-mono">
-                          ${settlement.settled_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${settlement.settled_cost_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                       )}
                       <p className="text-[10px] text-brand-muted/50 uppercase tracking-wider">
@@ -361,10 +362,10 @@ export const ConsignmentSalesPage = () => {
                               {t('consignment.qty', 'Qty')}
                             </th>
                             <th className="text-right px-3 py-3 text-[10px] font-semibold text-brand-muted/60 uppercase tracking-wider">
-                              {t('consignment.unitPrice', 'Unit Price')}
+                              {t('consignment.costPrice', 'Cost Price')}
                             </th>
                             <th className="text-right px-5 py-3 text-[10px] font-semibold text-brand-muted/60 uppercase tracking-wider">
-                              {t('consignment.total', 'Total')}
+                              {t('consignment.totalCost', 'Total Cost')}
                             </th>
                             <th className="text-center px-5 py-3 text-[10px] font-semibold text-brand-muted/60 uppercase tracking-wider">
                               {t('consignment.status', 'Status')}
@@ -395,12 +396,12 @@ export const ConsignmentSalesPage = () => {
                               </td>
                               <td className="text-right px-3 py-3">
                                 <span className="text-sm font-mono text-brand-muted/70">
-                                  ${item.unit_price_usd.toFixed(2)}
+                                  ${item.cost_usd.toFixed(2)}
                                 </span>
                               </td>
                               <td className="text-right px-5 py-3">
                                 <span className="text-sm font-mono font-medium text-brand-light">
-                                  ${item.line_total_usd.toFixed(2)}
+                                  ${(item.cost_usd * item.quantity).toFixed(2)}
                                 </span>
                               </td>
                               <td className="text-center px-5 py-3">
@@ -429,13 +430,13 @@ export const ConsignmentSalesPage = () => {
                           <div>
                             <span className="text-brand-muted/50">{t('consignment.settled', 'Settled')}: </span>
                             <span className="font-mono text-emerald-400 font-medium">
-                              {settlement.settled_quantity} ({settlement.settled_usd.toFixed(2)} USD)
+                              {settlement.settled_quantity} ({settlement.settled_cost_usd.toFixed(2)} USD)
                             </span>
                           </div>
                           <div>
                             <span className="text-brand-muted/50">{t('consignment.unsettled', 'Unsettled')}: </span>
                             <span className="font-mono text-amber-400 font-medium">
-                              {settlement.unsettled_quantity} ({settlement.unsettled_usd.toFixed(2)} USD)
+                              {settlement.unsettled_quantity} ({settlement.unsettled_cost_usd.toFixed(2)} USD)
                             </span>
                           </div>
                         </div>
@@ -448,7 +449,7 @@ export const ConsignmentSalesPage = () => {
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-400 text-brand-black font-semibold rounded-xl hover:shadow-[0_4px_20px_-4px_rgba(245,158,11,0.4)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                           >
                             <Check size={14} weight="bold" />
-                            {t('consignment.settleAll', 'Settle All')} (${settlement.unsettled_usd.toFixed(2)})
+                            {t('consignment.settleAll', 'Settle All')} (${settlement.unsettled_cost_usd.toFixed(2)})
                           </motion.button>
                         )}
                       </div>
@@ -468,6 +469,7 @@ export const ConsignmentSalesPage = () => {
           <p className="text-sm text-brand-muted/40">{t('consignment.noResults', 'No results found')}</p>
         </div>
       )}
+      </div>
     </div>
   );
 };

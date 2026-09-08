@@ -24,19 +24,15 @@ describe('ProfitSummaryCard', () => {
   });
 
   it('displays positive profit in green', () => {
-    renderCard({ data: { profitUsd: 500.00, profitSyp: 6250000 } });
+    renderCard({ data: { profitUsd: 500.00 } });
     const usdEl = screen.getByText('$500.00');
     expect(usdEl).toHaveClass('text-green-400');
-    const sypEl = screen.getByText('6,250,000 SYP');
-    expect(sypEl).toHaveClass('text-green-400');
   });
 
   it('displays negative profit in red', () => {
-    renderCard({ data: { profitUsd: -100.00, profitSyp: -1250000 } });
+    renderCard({ data: { profitUsd: -100.00 } });
     const usdEl = screen.getByText(/100\.00/);
     expect(usdEl).toHaveClass('text-red-400');
-    const sypEl = screen.getByText(/1,250,000/);
-    expect(sypEl).toHaveClass('text-red-400');
   });
 
   it('displays card title', () => {

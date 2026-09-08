@@ -36,11 +36,10 @@ const page = {
 };
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20, filter: 'blur(8px)' },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
     transition: { duration: 0.6, ease },
   },
 };
@@ -174,6 +173,7 @@ export const PurchaseOrdersPage = () => {
           <div className="absolute bottom-0 right-0 w-[500px] h-[400px] bg-blue-500/[0.02] rounded-full blur-[100px]" />
         </div>
 
+        <div className="px-5 md:px-8 lg:px-12 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1600px] mx-auto">
         {/* Hero Header */}
         <motion.section
           variants={fadeUp}
@@ -331,6 +331,7 @@ export const PurchaseOrdersPage = () => {
             )}
           </AnimatePresence>
         </motion.section>
+        </div>
       </motion.div>
 
       {/* Modals */}

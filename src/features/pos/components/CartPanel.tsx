@@ -21,9 +21,9 @@ interface CartPanelProps {
 }
 
 const itemVariant = {
-  initial: { opacity: 0, x: 20, filter: 'blur(4px)' },
-  animate: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const } },
-  exit: { opacity: 0, x: -20, filter: 'blur(4px)', transition: { duration: 0.2 } },
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.2 } },
 } satisfies Variants;
 
 export const CartPanel = ({

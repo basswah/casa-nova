@@ -1,12 +1,10 @@
 export interface SalesSummary {
   totalSalesUsd: number;
-  totalSalesSyp: number;
   transactionCount: number;
 }
 
 export interface ProfitSummary {
   profitUsd: number;
-  profitSyp: number;
 }
 
 export interface TopProduct {
@@ -16,6 +14,7 @@ export interface TopProduct {
   quantitySold: number;
   totalUsd: number;
   totalSyp: number;
+  profitUsd: number;
 }
 
 export interface DateRange {

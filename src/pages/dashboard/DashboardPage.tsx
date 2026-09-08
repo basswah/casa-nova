@@ -23,33 +23,67 @@ interface StatCardProps {
   accent?: 'gold' | 'green' | 'red' | 'default';
 }
 
-const StatCard = ({ icon, label, value, accent = 'gold' }: StatCardProps) => (
-  <div className="relative overflow-hidden rounded-3xl bg-brand-dark border border-brand-border/30 shadow-[var(--shadow-floating)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:shadow-[var(--shadow-hover)]">
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`flex items-center justify-center w-10 h-10 rounded-2xl shrink-0 ${
-          accent === 'gold' ? 'bg-brand-gold/10' :
-          accent === 'green' ? 'bg-green-500/10' :
-          accent === 'red' ? 'bg-red-500/10' :
-          'bg-brand-border/20'
-        }`}>
-          <span className={accent === 'gold' ? 'text-brand-gold' : accent === 'green' ? 'text-green-400' : accent === 'red' ? 'text-red-400' : 'text-brand-muted/60'}>
-            {icon}
-          </span>
+const StatCard = ({ icon, label, value, accent = 'gold' }: StatCardProps) => {
+  const accentStyles = {
+    gold: {
+      container: 'bg-brand-dark/60 border-brand-border/20',
+      icon: 'text-brand-gold/80',
+      iconBg: 'bg-brand-gold/10',
+      value: 'text-brand-gold',
+      label: 'text-brand-muted/50',
+    },
+    green: {
+      container: 'bg-brand-dark/60 border-brand-border/20',
+      icon: 'text-emerald-400/80',
+      iconBg: 'bg-emerald-500/10',
+      value: 'text-emerald-400',
+      label: 'text-brand-muted/50',
+    },
+    danger: {
+      container: 'bg-brand-dark/60 border-brand-border/20',
+      icon: 'text-red-400/80',
+      iconBg: 'bg-red-500/10',
+      value: 'text-red-400',
+      label: 'text-brand-muted/50',
+    },
+    success: {
+      container: 'bg-brand-dark/60 border-brand-border/20',
+      icon: 'text-emerald-400/80',
+      iconBg: 'bg-emerald-500/10',
+      value: 'text-emerald-400',
+      label: 'text-brand-muted/50',
+    },
+    default: {
+      container: 'bg-brand-dark/60 border-brand-border/20',
+      icon: 'text-brand-muted/60',
+      iconBg: 'bg-brand-border/10',
+      value: 'text-brand-light',
+      label: 'text-brand-muted/50',
+    },
+  };
+
+  const style = accentStyles[accent];
+
+  return (
+    <motion.div
+      variants={fadeSlideUp}
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      className={`relative overflow-hidden rounded-2xl bg-brand-dark/60 border border-brand-border/20 p-4 md:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-300 hover:border-brand-gold/20 hover:shadow-[0_8px_32px_-12px_rgba(201,160,60,0.15)]`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className={`w-10 h-10 rounded-xl ${style.iconBg} flex items-center justify-center`}>
+          <span className={style.icon}>{icon}</span>
         </div>
       </div>
-      <div>
-        <p className="text-[10px] font-medium text-brand-muted/50 uppercase tracking-widest mb-1.5">{label}</p>
-        <p className={`text-2xl md:text-3xl font-bold font-mono tracking-tight ${
-          accent === 'gold' ? 'text-brand-gold' :
-          accent === 'green' ? 'text-green-400' :
-          accent === 'red' ? 'text-red-400' :
-          'text-brand-light'
-        }`}>{value}</p>
-      </div>
-    </div>
-  </div>
-);
+      <p className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-wider ${style.label} mb-1`}>
+        {label}
+      </p>
+      <p className={`text-xl md:text-2xl font-bold font-mono tracking-tight ${style.value}`}>
+        {value}
+      </p>
+    </motion.div>
+  );
+};
 
 interface ActivityItemProps {
   icon: React.ReactNode;
@@ -58,15 +92,13 @@ interface ActivityItemProps {
 }
 
 const ActivityItem = ({ icon, primary, secondary }: ActivityItemProps) => (
-  <div className="group flex items-center gap-3.5 px-3.5 py-3 rounded-2xl hover:bg-brand-black/30 transition-all duration-300 ease-out-expo">
-    <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-brand-black/40 border border-brand-border/20 shrink-0 transition-all duration-300 ease-out-expo group-hover:border-brand-gold/30">
-      <span className="text-brand-muted/40 group-hover:text-brand-gold/70 transition-colors duration-300">
-        {icon}
-      </span>
+  <div className="group flex items-center gap-3 px-4 py-3.5 hover:bg-brand-black/30 transition-all duration-200 border-b border-brand-border/10 last:border-0">
+    <div className="w-9 h-9 rounded-xl bg-brand-black/40 border border-brand-border/20 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:border-brand-gold/30">
+      <span className="text-brand-muted/40 group-hover:text-brand-gold/70 transition-colors duration-200">{icon}</span>
     </div>
     <div className="flex-1 min-w-0">
       <p className="text-sm text-brand-light font-medium truncate capitalize">{primary}</p>
-      <p className="text-xs text-brand-muted/50 font-mono truncate mt-0.5">{secondary}</p>
+      <p className="text-xs text-brand-muted/50 font-mono truncate">{secondary}</p>
     </div>
   </div>
 );
@@ -79,33 +111,34 @@ export const DashboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] max-w-7xl mx-auto space-y-6 md:space-y-8 p-4 md:p-6">
-        <div>
+      <div className="px-5 md:px-8 lg:px-12 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1600px] mx-auto">
+        <div className="mb-8 md:mb-12">
           <Skeleton className="h-7 w-48 rounded-md mb-2" />
           <Skeleton className="h-4 w-32 rounded-md" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8 md:mb-12">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-brand-dark rounded-3xl p-6 border border-brand-border/30 space-y-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-              <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-2xl" />
+            <div key={i} className="h-28 rounded-2xl bg-brand-dark/60 border border-brand-border/20 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="w-10 h-10 rounded-xl" />
                 <Skeleton className="h-3 w-20 rounded-md" />
               </div>
-              <Skeleton className="h-8 w-28 rounded-md" />
+              <Skeleton className="h-8 w-28 rounded-lg mb-2" />
+              <Skeleton className="h-3 w-20 rounded-md" />
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-7">
             <Skeleton className="h-6 w-36 rounded-md mb-4" />
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-2xl mb-2.5" />
+              <Skeleton key={i} className="h-14 rounded-2xl mb-2.5" />
             ))}
           </div>
           <div className="lg:col-span-5">
             <Skeleton className="h-6 w-36 rounded-md mb-4" />
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-2xl mb-2.5" />
+              <Skeleton key={i} className="h-14 rounded-2xl mb-2.5" />
             ))}
           </div>
         </div>
@@ -115,33 +148,38 @@ export const DashboardPage = () => {
 
   if (error || !data) {
     return (
-      <div className="min-h-[100dvh] max-w-7xl mx-auto flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <WarningCircle size={48} weight="duotone" className="text-red-400/30" />
-          <p className="text-red-400 text-sm font-medium">{t('common.error')}</p>
+      <div className="px-5 md:px-8 lg:px-12 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1600px] mx-auto">
+        <div className="flex items-center justify-center py-24">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-16 h-16 rounded-2xl bg-red-900/15 border border-red-800/20 flex items-center justify-center">
+              <WarningCircle size={28} weight="duotone" className="text-red-400/60" />
+            </div>
+            <p className="text-sm text-red-400/80 font-medium">{t('common.error')}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] max-w-7xl mx-auto space-y-6 md:space-y-8 p-4 md:p-6">
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold text-brand-light tracking-tight">{t('dashboard.title')}</h1>
-        <p className="text-xs md:text-sm text-brand-muted/50 mt-1 tracking-tight">
-          {t('dashboard.welcome', 'Welcome back! Here\'s your business overview')}
+    <div className="px-5 md:px-8 lg:px-12 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1600px] mx-auto">
+      {/* Page Header */}
+      <div className="mb-8 md:mb-12">
+        <h1 className="text-2xl md:text-3xl font-bold text-brand-light tracking-tight mb-2">{t('dashboard.title')}</h1>
+        <p className="text-sm text-brand-muted/50">
+          {t('dashboard.welcome', "Welcome back! Here's your business overview")}
         </p>
       </div>
 
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8 md:mb-12"
         variants={stagger}
         initial="initial"
         animate="animate"
       >
         <motion.div variants={fadeSlideUp}>
           <StatCard
-            icon={<CurrencyDollar size={22} weight="duotone" />}
+            icon={<CurrencyDollar size={20} weight="duotone" />}
             label={t('dashboard.todaySalesUsd')}
             value={`$${data.todaySalesUsd.toLocaleString()}`}
             accent="gold"
@@ -149,7 +187,7 @@ export const DashboardPage = () => {
         </motion.div>
         <motion.div variants={fadeSlideUp}>
           <StatCard
-            icon={<ShoppingCart size={22} weight="duotone" />}
+            icon={<ShoppingCart size={20} weight="duotone" />}
             label={t('dashboard.todaySalesSyp')}
             value={`${data.todaySalesSyp.toLocaleString()} ل.س`}
             accent="green"
@@ -157,7 +195,7 @@ export const DashboardPage = () => {
         </motion.div>
         <motion.div variants={fadeSlideUp}>
           <StatCard
-            icon={<Package size={22} weight="duotone" />}
+            icon={<Package size={20} weight="duotone" />}
             label={t('dashboard.todayOrders')}
             value={String(data.todaySalesCount)}
             accent="default"
@@ -165,31 +203,31 @@ export const DashboardPage = () => {
         </motion.div>
         <motion.div variants={fadeSlideUp}>
           <StatCard
-            icon={<WarningCircle size={22} weight="duotone" />}
+            icon={<WarningCircle size={20} weight="duotone" />}
             label={t('dashboard.lowStock')}
             value={String(data.lowStockCount)}
-            accent={data.lowStockCount > 0 ? 'red' : 'green'}
+            accent={data.lowStockCount > 0 ? 'danger' : 'success'}
           />
         </motion.div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-7">
           <h2 className="text-sm font-semibold text-brand-gold tracking-tight mb-4 flex items-center gap-2">
-            <ShoppingCart size={16} weight="duotone" />
+            <ShoppingCart size={15} weight="duotone" />
             {t('dashboard.recentSales')}
           </h2>
-          <div className="relative overflow-hidden rounded-3xl bg-brand-dark border border-brand-border/30 shadow-[var(--shadow-floating)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] divide-y divide-brand-border/20">
+          <div className="rounded-2xl bg-brand-dark/60 border border-brand-border/20 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             {data.recentSales.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-6">
-                <ShoppingCart size={32} weight="thin" className="text-brand-muted/20 mb-3" />
+                <ShoppingCart size={28} weight="thin" className="text-brand-muted/20 mb-2" />
                 <p className="text-sm text-brand-muted/50 text-center">{t('common.noData')}</p>
               </div>
             ) : (
               data.recentSales.map((sale) => (
                 <ActivityItem
                   key={sale.id}
-                  icon={<Note size={18} weight="duotone" />}
+                  icon={<Note size={16} weight="duotone" />}
                   primary={sale.id.slice(0, 8)}
                   secondary={`$${sale.total_usd?.toFixed(2) ?? '0.00'}`}
                 />
@@ -200,20 +238,20 @@ export const DashboardPage = () => {
 
         <div className="lg:col-span-5">
           <h2 className="text-sm font-semibold text-brand-gold tracking-tight mb-4 flex items-center gap-2">
-            <Package size={16} weight="duotone" />
+            <Package size={15} weight="duotone" />
             {t('dashboard.recentOrders')}
           </h2>
-          <div className="relative overflow-hidden rounded-3xl bg-brand-dark border border-brand-border/30 shadow-[var(--shadow-floating)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] divide-y divide-brand-border/20">
+          <div className="rounded-2xl bg-brand-dark/60 border border-brand-border/20 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             {data.recentPurchaseOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-6">
-                <Package size={32} weight="thin" className="text-brand-muted/20 mb-3" />
+                <Package size={28} weight="thin" className="text-brand-muted/20 mb-2" />
                 <p className="text-sm text-brand-muted/50 text-center">{t('common.noData')}</p>
               </div>
             ) : (
               data.recentPurchaseOrders.map((po) => (
                 <ActivityItem
                   key={po.id}
-                  icon={<Clock size={18} weight="duotone" />}
+                  icon={<Clock size={16} weight="duotone" />}
                   primary={po.id.slice(0, 8)}
                   secondary={po.status}
                 />

@@ -6,8 +6,8 @@ import { TopProductsTable } from '../TopProductsTable';
 import type { TopProduct } from '@/types/reports';
 
 const mockProducts: TopProduct[] = [
-  { productId: '1', productName: 'Espresso Beans', sku: 'ESP-001', quantitySold: 50, totalUsd: 1250.00, totalSyp: 15625000 },
-  { productId: '2', productName: 'Latte Cup', sku: 'LAT-002', quantitySold: 30, totalUsd: 300.00, totalSyp: 3750000 },
+  { productId: '1', productName: 'Espresso Beans', sku: 'ESP-001', quantitySold: 50, totalUsd: 1250.00, totalSyp: 15625000, profitUsd: 625.00 },
+  { productId: '2', productName: 'Latte Cup', sku: 'LAT-002', quantitySold: 30, totalUsd: 300.00, totalSyp: 3750000, profitUsd: 150.00 },
 ];
 
 describe('TopProductsTable', () => {

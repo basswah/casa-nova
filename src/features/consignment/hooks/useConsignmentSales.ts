@@ -11,6 +11,8 @@ export interface ConsignmentSaleItem {
   unit_price_syp: number;
   line_total_usd: number;
   line_total_syp: number;
+  cost_usd: number;
+  cost_syp: number;
   is_settled: boolean;
   settled_at: string | null;
   product_name: string;
@@ -25,12 +27,12 @@ export interface SupplierSettlement {
   supplier_name: string;
   items: ConsignmentSaleItem[];
   total_quantity: number;
-  total_usd: number;
-  total_syp: number;
+  total_cost_usd: number;
+  total_cost_syp: number;
   settled_quantity: number;
   unsettled_quantity: number;
-  settled_usd: number;
-  unsettled_usd: number;
+  settled_cost_usd: number;
+  unsettled_cost_usd: number;
 }
 
 interface RawItem {
@@ -65,15 +67,15 @@ const fetchConsignmentSales = async (): Promise<ConsignmentSaleItem[]> => {
   const soIds = [...new Set(rawItems.map((i) => i.so_id))];
 
   const [{ data: products }, { data: orders }, { data: suppliers }] = await Promise.all([
-    supabase.from('products').select('id, name, sku, supplier_id, is_consignment').in('id', productIds),
+    supabase.from('products').select('id, name, sku, supplier_id, is_consignment, cost_usd, cost_syp').in('id', productIds),
     supabase.from('sales_orders').select('id, order_date').in('id', soIds),
     supabase.from('suppliers').select('id, name'),
   ]);
 
-  const productMap = new Map<string, { name: string; sku: string | null; supplier_id: string | null }>();
-  for (const p of (products ?? []) as Array<{ id: string; name: string; sku: string | null; supplier_id: string | null; is_consignment: boolean }>) {
+  const productMap = new Map<string, { name: string; sku: string | null; supplier_id: string | null; cost_usd: number; cost_syp: number }>();
+  for (const p of (products ?? []) as Array<{ id: string; name: string; sku: string | null; supplier_id: string | null; is_consignment: boolean; cost_usd: number; cost_syp: number }>) {
     if (p.is_consignment) {
-      productMap.set(p.id, { name: p.name, sku: p.sku, supplier_id: p.supplier_id });
+      productMap.set(p.id, { name: p.name, sku: p.sku, supplier_id: p.supplier_id, cost_usd: Number(p.cost_usd) || 0, cost_syp: Number(p.cost_syp) || 0 });
     }
   }
 
@@ -103,6 +105,8 @@ const fetchConsignmentSales = async (): Promise<ConsignmentSaleItem[]> => {
       unit_price_syp: Number(item.unit_price_syp) || 0,
       line_total_usd: Number(item.line_total_usd) || 0,
       line_total_syp: Number(item.line_total_syp) || 0,
+      cost_usd: product.cost_usd,
+      cost_syp: product.cost_syp,
       is_settled: item.is_settled ?? false,
       settled_at: item.settled_at ?? null,
       product_name: product.name,
