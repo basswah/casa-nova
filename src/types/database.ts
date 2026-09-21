@@ -84,6 +84,7 @@ export interface Database {
           id: string;
           name: string;
           sku: string | null;
+          image_url: string | null;
           category_id: string | null;
           price_usd: number;
           price_syp: number;
@@ -99,6 +100,7 @@ export interface Database {
           id?: string;
           name: string;
           sku?: string | null;
+          image_url?: string | null;
           category_id?: string | null;
           price_usd?: number;
           price_syp?: number;
@@ -114,6 +116,7 @@ export interface Database {
           id?: string;
           name?: string;
           sku?: string | null;
+          image_url?: string | null;
           category_id?: string | null;
           price_usd?: number;
           price_syp?: number;

@@ -2,7 +2,7 @@ import logo from "./casa-nova-logo.png";
 import { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { X, SignOut } from "@phosphor-icons/react";
+import { X, SignOut, List } from "@phosphor-icons/react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useProfile } from "@/features/admin/hooks/useUsers";
 import { LanguageSwitcher } from "@/features/shared/components/LanguageSwitcher";
@@ -222,9 +222,7 @@ export const RootLayout = () => {
                 className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors duration-200 ml-1"
                 aria-label={t('common.openNavigation', 'Open navigation menu')}
               >
-                <span className="block w-[18px] h-[2px] bg-brand-muted rounded-full transition-all duration-300" />
-                <span className="block w-[18px] h-[2px] bg-brand-muted rounded-full transition-all duration-300" />
-                <span className="block w-[18px] h-[2px] bg-brand-muted rounded-full transition-all duration-300" />
+                <List size={20} weight="bold" className="text-brand-muted" />
               </button>
             </div>
           </div>

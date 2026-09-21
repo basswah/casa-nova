@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { MagnifyingGlass, Plus, Package, Tag } from '@phosphor-icons/react';
+import { MagnifyingGlass, Plus, Package, Tag, X } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import type { PosProduct } from '@/types/pos';
@@ -13,12 +13,12 @@ interface ProductGridProps {
 }
 
 const stagger = {
-  animate: { transition: { staggerChildren: 0.04 } },
+  animate: { transition: { staggerChildren: 0.03 } },
 };
 
 const cardVariant = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
+  initial: { opacity: 0, y: 20, scale: 0.97 },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
 } satisfies Variants;
 
 export const ProductGrid = ({ products, onAddToCart, search, onSearchChange }: ProductGridProps) => {
@@ -32,9 +32,9 @@ export const ProductGrid = ({ products, onAddToCart, search, onSearchChange }: P
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search Bar — Floating Glass */}
+      {/* Search Bar */}
       <div className="relative mb-6 md:mb-8">
-        <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-brand-muted/30">
+        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-brand-muted/25">
           <MagnifyingGlass size={18} weight="bold" />
         </div>
         <label htmlFor="pg-search" className="sr-only">{t('pos.searchProducts')}</label>
@@ -44,18 +44,28 @@ export const ProductGrid = ({ products, onAddToCart, search, onSearchChange }: P
           placeholder={t('pos.searchProducts')}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-12 pr-4 py-3.5 bg-brand-dark/60 backdrop-blur-xl border border-brand-border/30 rounded-2xl text-sm text-brand-light placeholder-brand-muted/30 hover:border-brand-gold/20 focus:outline-none focus:ring-2 focus:ring-brand-gold/15 focus:border-brand-gold/40 transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_8px_-2px_rgba(0,0,0,0.15)]"
+          className="w-full pl-13 pr-12 py-4 bg-brand-dark/50 backdrop-blur-xl border border-brand-border/25 rounded-2xl text-sm text-brand-light placeholder-brand-muted/25 hover:border-brand-gold/15 focus:outline-none focus:ring-2 focus:ring-brand-gold/10 focus:border-brand-gold/30 transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_2px_12px_-4px_rgba(0,0,0,0.15)]"
           style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}
         />
         {search && (
           <button
             onClick={() => onSearchChange('')}
-            className="absolute inset-y-0 right-0 pr-4 flex items-center text-brand-muted/40 hover:text-brand-light/70 transition-colors"
+            className="absolute inset-y-0 right-0 pr-5 flex items-center text-brand-muted/30 hover:text-brand-light/60 transition-colors duration-200"
+            aria-label="Clear search"
           >
-            <span className="text-[10px] font-mono bg-brand-border/30 px-1.5 py-0.5 rounded-md">ESC</span>
+            <X size={14} weight="bold" />
           </button>
         )}
       </div>
+
+      {/* Product count */}
+      {filtered.length > 0 && (
+        <div className="flex items-center justify-between mb-4 md:mb-5">
+          <p className="text-[11px] font-medium text-brand-muted/30 uppercase tracking-widest">
+            {filtered.length} {filtered.length === 1 ? 'product' : 'products'}
+          </p>
+        </div>
+      )}
 
       {/* Products Grid */}
       <AnimatePresence mode="wait">
@@ -65,13 +75,18 @@ export const ProductGrid = ({ products, onAddToCart, search, onSearchChange }: P
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex items-center justify-center"
+            className="flex-1 flex items-center justify-center py-20"
           >
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-brand-dark/60 border border-brand-border/30 flex items-center justify-center">
-                <Package size={28} weight="duotone" className="text-brand-muted/25" />
+              <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-brand-dark/50 border border-brand-border/20 flex items-center justify-center">
+                <Package size={32} weight="duotone" className="text-brand-muted/15" />
               </div>
-              <p className="text-sm text-brand-muted/50">{t('pos.noProducts')}</p>
+              <p className="text-sm font-medium text-brand-muted/40 mb-1" style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
+                {t('pos.noProducts')}
+              </p>
+              <p className="text-[11px] text-brand-muted/25">
+                {search ? 'Try a different search term' : 'Add products to get started'}
+              </p>
             </div>
           </motion.div>
         ) : (
@@ -80,7 +95,7 @@ export const ProductGrid = ({ products, onAddToCart, search, onSearchChange }: P
             variants={stagger}
             initial="initial"
             animate="animate"
-            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 overflow-y-auto pb-24 pr-1 scrollbar-thin"
+            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 overflow-y-auto py-1 pb-28 pr-1 scrollbar-thin"
           >
             {filtered.map((product) => {
               const isOutOfStock = product.quantity <= 0;
@@ -90,64 +105,89 @@ export const ProductGrid = ({ products, onAddToCart, search, onSearchChange }: P
                 <motion.button
                   key={product.id}
                   variants={cardVariant}
-                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                  whileHover={{ y: -6, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => onAddToCart(product)}
                   disabled={isOutOfStock}
-                  className="group relative flex flex-col bg-brand-dark/50 backdrop-blur-sm border border-brand-border/25 rounded-2xl p-4 md:p-5 text-left transition-all duration-300
-                    hover:border-brand-gold/25 hover:shadow-[0_8px_32px_-8px_rgba(212,175,55,0.1),inset_0_1px_0_rgba(255,255,255,0.06)]
-                    disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-brand-border/25 disabled:hover:y-0 disabled:active:scale-100
-                    shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                  className="group relative flex flex-col aspect-[3/4] rounded-2xl text-left cursor-pointer
+                    border border-brand-border/20
+                    hover:border-brand-gold/20 hover:shadow-[0_12px_40px_-12px_rgba(201,160,60,0.12)]
+                    disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-brand-border/20 disabled:hover:y-0 disabled:active:scale-100
+                    shadow-[0_2px_8px_-2px_rgba(0,0,0,0.15)]"
                 >
-                  {/* Consignment Badge */}
-                  {product.is_consignment && (
-                    <div className="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-900/25 border border-amber-700/30">
-                      <Tag size={9} weight="bold" className="text-amber-400/80" />
-                      <span className="text-[8px] font-semibold text-amber-400/80 leading-none">{t('pos.consignment', 'برسم البيع')}</span>
-                    </div>
-                  )}
+                  {/* Full Background Image */}
+                  <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-brand-dark/80 to-brand-black flex items-center justify-center">
+                        <Package size={40} weight="duotone" className="text-brand-muted/10" />
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Top Row: Name + Stock Badge */}
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-sm font-semibold text-brand-light/90 truncate leading-snug tracking-tight" style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
-                      {product.name}
-                    </h3>
-                    <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono font-medium leading-none ${
+                  {/* Dark gradient overlay — always visible, stronger at bottom */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                  {/* Top badges */}
+                  <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-10">
+                    {/* Consignment Badge */}
+                    {product.is_consignment && (
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-900/50 border border-amber-700/30 backdrop-blur-md">
+                        <Tag size={9} weight="bold" className="text-amber-300/80" />
+                        <span className="text-[9px] font-semibold text-amber-300/80 leading-none">{t('pos.consignment', 'برسم البيع')}</span>
+                      </div>
+                    )}
+
+                    {/* Stock Badge */}
+                    <div className={`ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium leading-none backdrop-blur-md border ${
                       isOutOfStock
-                        ? 'bg-brand-muted/8 text-brand-muted/50'
+                        ? 'bg-black/40 text-brand-muted/60 border-white/5'
                         : isLowStock
-                          ? 'bg-red-900/15 text-red-400/80'
-                          : 'bg-green-900/12 text-green-400/70'
+                          ? 'bg-red-900/50 text-red-300/90 border-red-700/30'
+                          : 'bg-green-900/40 text-green-300/80 border-green-700/20'
                     }`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${
                         isOutOfStock ? 'bg-brand-muted/40' :
                         isLowStock ? 'bg-red-400 animate-pulse' : 'bg-green-400'
                       }`} />
                       {isOutOfStock ? '0' : product.quantity}
-                    </span>
+                    </div>
                   </div>
 
-                  {/* SKU */}
-                  <p className="text-[11px] font-mono text-brand-muted/35 mb-3 md:mb-4 leading-snug tracking-tight">
-                    {product.sku || t('pos.noSku')}
-                  </p>
+                  {/* Bottom content — overlaid on image */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                    {/* Name */}
+                    <h3 className="text-sm font-semibold text-white truncate leading-snug tracking-tight mb-1" style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
+                      {product.name}
+                    </h3>
 
-                  {/* Price + Add Button */}
-                  <div className="mt-auto pt-3 md:pt-4 border-t border-brand-border/15 flex items-end justify-between">
-                    <div>
-                      <p className="text-brand-gold font-bold text-lg md:text-xl font-mono tracking-tight leading-none">
-                        ${product.price_usd.toFixed(2)}
-                      </p>
-                      <p className="text-brand-muted/40 text-[10px] md:text-[11px] font-mono leading-none tracking-tight mt-1">
-                        {product.price_syp.toLocaleString()} SYP
-                      </p>
-                    </div>
+                    {/* SKU */}
+                    <p className="text-[10px] font-mono text-white/30 mb-2.5 tracking-tight truncate">
+                      {product.sku || t('pos.noSku')}
+                    </p>
 
-                    {!isOutOfStock && (
-                      <div className="w-9 h-9 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:bg-brand-gold/20">
-                        <Plus size={16} weight="bold" className="text-brand-gold" />
+                    {/* Price + Add button row */}
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-[var(--clr-gold)] font-bold text-lg font-mono tracking-tight leading-none">
+                          ${product.price_usd.toFixed(2)}
+                        </p>
+                        <p className="text-white/30 text-[10px] font-mono leading-none tracking-tight mt-1">
+                          {product.price_syp.toLocaleString()} SYP
+                        </p>
                       </div>
-                    )}
+
+                      {!isOutOfStock && (
+                        <div className="w-10 h-10 rounded-xl bg-[var(--clr-gold)] flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(201,160,60,0.5)]">
+                          <Plus size={18} weight="bold" className="text-brand-black" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </motion.button>
               );

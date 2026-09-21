@@ -1,14 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion, type Easing } from 'framer-motion';
-import { X, WarningCircle, Tag, Package, CurrencyCircleDollar } from '@phosphor-icons/react';
+import { X, WarningCircle, Tag, Package, CurrencyCircleDollar, Image,Spinner } from '@phosphor-icons/react';
 import { productSchema, type ProductFormData } from '@/features/inventory/validations/productSchema';
 import type { Product, NewProduct, UpdateProduct } from '@/types/inventory';
 import { useCategories } from '@/features/inventory/hooks/useCategories';
 import { useSuppliers } from '@/features/purchases/hooks/useSuppliers';
 import { useSettings } from '@/features/settings/hooks/useSettingsQuery';
+import { uploadProductImage } from '@/features/inventory/services/storage';
 
 function generateSku(): string {
   const random = Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -44,6 +45,10 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
   const { data: settings } = useSettings();
   const exchangeRate = settings?.exchangeRate ?? 0;
   const skuRef = useRef(generateSku());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     register,
@@ -60,6 +65,9 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
   useEffect(() => {
     if (!open) return;
     skuRef.current = generateSku();
+    setSelectedFile(null);
+    setImagePreview(product?.image_url ?? null);
+    setIsUploading(false);
     reset(
       product
         ? {
@@ -73,7 +81,7 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
           }
         : { name: '', category_id: '', price_usd: 0, cost_usd: 0, quantity: 0, is_consignment: false, supplier_id: null },
     );
-  }, [open, product?.id, reset]);
+  }, [open, product?.id, reset, product?.image_url]);
 
   const currentSku = isEdit ? (product.sku ?? '') : skuRef.current;
   const watchPriceUsd = watch('price_usd');
@@ -82,17 +90,49 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
   const computedPriceSyp = exchangeRate > 0 ? watchPriceUsd * exchangeRate : 0;
   const computedCostSyp = exchangeRate > 0 ? watchCostUsd * exchangeRate : 0;
 
-  const handleFormSubmit = (data: ProductFormData) => {
-    const payload = {
-      ...data,
-      sku: isEdit ? product.sku : skuRef.current,
-      category_id: data.category_id || null,
-      supplier_id: data.is_consignment ? (data.supplier_id || null) : null,
-      price_syp: computedPriceSyp,
-      cost_syp: computedCostSyp,
-    };
-    onSubmit(payload);
-    if (!isEdit) reset();
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handleRemoveFile = useCallback(() => {
+    setSelectedFile(null);
+    setImagePreview(isEdit ? (product?.image_url ?? null) : null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [isEdit, product?.image_url]);
+
+  const handleFormSubmit = async (data: ProductFormData) => {
+    setIsUploading(true);
+    try {
+      let imageUrl = product?.image_url ?? null;
+
+      if (selectedFile) {
+        imageUrl = await uploadProductImage(selectedFile);
+      }
+
+      const payload = {
+        ...data,
+        sku: isEdit ? product.sku : skuRef.current,
+        image_url: imageUrl,
+        category_id: data.category_id || null,
+        supplier_id: data.is_consignment ? (data.supplier_id || null) : null,
+        price_syp: computedPriceSyp,
+        cost_syp: computedCostSyp,
+      };
+
+      await onSubmit(payload);
+      if (!isEdit) {
+        reset();
+        setSelectedFile(null);
+        setImagePreview(null);
+      }
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -180,6 +220,57 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
                     </label>
                     <div className="w-full px-4 py-3 bg-brand-border/10 border border-brand-border/30 rounded-xl text-sm text-brand-muted/60 font-mono">
                       {currentSku}
+                    </div>
+                  </motion.div>
+
+                  {/* Product Image */}
+                  <motion.div variants={fadeSlideUp}>
+                    <label className="block text-[11px] font-semibold text-brand-muted/70 uppercase tracking-wider mb-2">
+                      {t('productForm.image', 'Product Image')}
+                    </label>
+                    <div className="relative">
+                      {imagePreview ? (
+                        <div className="relative group w-full h-40 rounded-xl overflow-hidden border border-brand-border/40">
+                          <img
+                            src={imagePreview}
+                            alt="Product preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={handleRemoveFile}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-9 h-9 rounded-lg bg-red-500/90 text-white flex items-center justify-center"
+                            >
+                              <X size={16} weight="bold" />
+                            </button>
+                          </div>
+                          {isUploading && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <Spinner size={24} weight="bold" className="text-brand-gold animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <label
+                          htmlFor="pf-image"
+                          className="flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-brand-border/40 bg-brand-black/30 cursor-pointer hover:border-brand-gold/30 hover:bg-brand-black/50 transition-all duration-300 group"
+                        >
+                          <Image size={24} weight="duotone" className="text-brand-muted/30 group-hover:text-brand-gold/50 transition-colors duration-300 mb-2" />
+                          <span className="text-xs text-brand-muted/40 group-hover:text-brand-muted/60 transition-colors duration-300">
+                            {t('productForm.uploadHint', 'Click to upload image')}
+                          </span>
+                          <span className="text-[10px] text-brand-muted/25 mt-1">PNG, JPG, WEBP</span>
+                        </label>
+                      )}
+                      <input
+                        id="pf-image"
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="sr-only"
+                      />
                     </div>
                   </motion.div>
 
@@ -339,7 +430,7 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
                   <motion.div variants={fadeSlideUp} className="pt-2">
                     <motion.button
                       type="submit"
-                      disabled={loading || isSubmitting}
+                      disabled={loading || isSubmitting || isUploading}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       className="relative w-full py-3.5 rounded-xl overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
@@ -347,7 +438,7 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
                       <div className="absolute inset-0 bg-gradient-to-r from-brand-gold to-amber-400" />
                       <div className="absolute inset-[1px] rounded-xl bg-gradient-to-b from-white/15 to-transparent" />
                       <div className="relative flex items-center justify-center gap-2">
-                        {loading || isSubmitting ? (
+                        {loading || isSubmitting || isUploading ? (
                           <>
                             <svg className="animate-spin h-4 w-4 text-brand-black" viewBox="0 0 24 24" fill="none">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

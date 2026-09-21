@@ -3,17 +3,17 @@ name: Casa Nova POS
 description: Modern POS and inventory management for Syrian retail
 colors:
   surface-bg-dark: "#121212"
-  surface-bg-light: "#FFFFFF"
+  surface-bg-light: "#F5F3EF"
   surface-card-dark: "#1E1E1E"
-  surface-card-light: "#F3F4F6"
+  surface-card-light: "#FEFDFB"
   accent-gold-dark: "#D4AF37"
-  accent-gold-light: "#B8960F"
+  accent-gold-light: "#7D7348"
   text-primary-dark: "#F9F9F9"
-  text-primary-light: "#1A1A1A"
+  text-primary-light: "#44403C"
   text-muted-dark: "#9CA3AF"
-  text-muted-light: "#6B7280"
+  text-muted-light: "#6E685E"
   border-dark: "#374151"
-  border-light: "#D1D5DB"
+  border-light: "#D1C9BC"
 typography:
   display:
     fontFamily: "Inter, system-ui, -apple-system, sans-serif"
@@ -77,7 +77,7 @@ components:
     padding: "10px 12px"
     typography: "{typography.body}"
   input-light:
-    backgroundColor: "#FFFFFF"
+    backgroundColor: "#FEFDFB"
     textColor: "{text-primary-light}"
     rounded: "{rounded.md}"
     padding: "10px 12px"
@@ -120,7 +120,7 @@ The aesthetic is restrained professional. A single cool-gold accent provides the
 **Character:** A cool-gold accent on near-black and charcoal neutrals. The palette has three layers: background, surface, and accent. No secondary or tertiary colors exist; the restraint is intentional.
 
 ### Primary
-- **Cool Gold** (dark: `oklch(75% 0.1 85)` / `#D4AF37`, light: `oklch(65% 0.1 85)` / `#B8960F`): The single accent. Used for primary CTAs, active nav items, headings in data displays, and the app title. Never used for body text, borders at rest, or decorative elements.
+- **Cool Gold** (dark: `oklch(75% 0.1 85)` / `#D4AF37`, light: `oklch(50% 0.04 85)` / `#7D7348`): The single accent. Used for primary CTAs, active nav items, headings in data displays, and the app title. Never used for body text, borders at rest, or decorative elements.
 
 ### Neutral
 - **Near Black** (`oklch(12% 0.005 85)` / `#121212`): The canvas. Page background in dark mode.
@@ -128,8 +128,10 @@ The aesthetic is restrained professional. A single cool-gold accent provides the
 - **Deep Gray** (`oklch(35% 0.005 85)` / `#374151`): Borders at rest, dividers.
 - **Muted** (`oklch(60% 0.005 85)` / `#9CA3AF`): Secondary text, labels, placeholders.
 - **Off-White** (`oklch(95% 0.005 85)` / `#F9F9F9`): Primary text in dark mode.
-- **Light Canvas** (`oklch(98% 0.005 85)` / `#FFFFFF`): Page background in light mode.
-- **Warm Gray** (`oklch(95% 0.005 85)` / `#F3F4F6`): Cards, panels, inputs in light mode.
+- **Light Canvas** (`oklch(95% 0.01 85)` / `#F5F3EF`): Page background in light mode.
+- **Warm White** (`oklch(99% 0.005 85)` / `#FEFDFB`): Cards, panels, inputs in light mode.
+- **Warm Muted** (`oklch(45% 0.015 85)` / `#6E685E`): Secondary text in light mode.
+- **Soft Border** (`oklch(83% 0.02 85)` / `#D1C9BC`): Borders in light mode.
 
 ### Named Rules
 
@@ -173,7 +175,7 @@ The system is flat by default with controlled shadow elevation for interactive a
 ### Buttons
 - **Shape:** Gently curved edges (8px radius).
 - **Primary (dark mode):** Cool Gold fill (`#D4AF37`), near-black text (`#121212`), 12px 24px padding. On hover: 5% lighter gold (`#D9B84A`), shadow `0 2px 8px rgba(0,0,0,0.15)`. Active: scale to 0.98.
-- **Primary (light mode):** Cool Gold fill (`#B8960F`), white text, same padding and radius.
+- **Primary (light mode):** Cool Gold fill (`#8B8057`), white text, same padding and radius.
 - **Secondary:** Transparent background, Cool Gold text, 1px Cool Gold border at 20% opacity. On hover: 10% gold background tint.
 - **Danger:** Red-600 fill (`#DC2626`), white text. On hover: darker red.
 - **Disabled:** 40% opacity, no hover effects.
@@ -187,7 +189,7 @@ The system is flat by default with controlled shadow elevation for interactive a
 
 ### Cards / Containers
 - **Corner Style:** Noticeably curved (12px radius).
-- **Background:** Charcoal (`#1E1E1E`) in dark, Warm Gray (`#F3F4F6`) in light.
+- **Background:** Charcoal (`#1E1E1E`) in dark, Warm White (`#FEFDFB`) in light.
 - **Shadow Strategy:** None at rest (Flat-At-Rest Rule). Surface Hover shadow on interactive cards.
 - **Border:** 1px Deep Gray (`#374151`) in dark, 1px light gray in light.
 - **Internal Padding:** 24px (lg spacing). Dense card variants use 16px.

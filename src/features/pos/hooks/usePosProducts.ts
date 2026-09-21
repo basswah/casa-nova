@@ -11,7 +11,7 @@ export const usePosProducts = () => {
       const { data, error } = await withTimeout(
         supabase
           .from('products')
-          .select('id, name, sku, price_usd, price_syp, quantity, is_consignment')
+          .select('id, name, sku, image_url, price_usd, price_syp, quantity, is_consignment')
           .gt('quantity', 0),
         DEFAULT_TIMEOUT_MS,
         'Fetch POS products',

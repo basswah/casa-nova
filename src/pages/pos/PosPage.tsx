@@ -1,15 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion, type Easing } from 'framer-motion';
 import {
   ShoppingCart,
   WarningCircle,
   Sparkle,
   Package,
-  FolderOpen,
+  Basket,
   CurrencyDollar,
-  ListNumbers,
+  Hash,
 } from '@phosphor-icons/react';
 import { usePosProducts } from '@/features/pos/hooks/usePosProducts';
 import { usePosCart } from '@/features/pos/hooks/usePosCart';
@@ -61,7 +61,7 @@ export const PosPage = () => {
     return { totalItems, totalStock, cartValue, cartCount };
   }, [products, cart]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = useCallback(async () => {
     if (cart.items.length === 0) return;
 
     setCheckingOut(true);
@@ -69,8 +69,6 @@ export const PosPage = () => {
       const effectivePriceUsd = (item: CartItem) => item.customPriceUsd ?? item.product.price_usd;
       const effectivePriceSyp = (item: CartItem) => item.customPriceSyp ?? item.product.price_syp;
 
-      // Apply the discount at the line level so the stored order total always
-      // reconciles with the sum of its line items (prevents return over-credit).
       const factor = 1 - discount / 100;
 
       const items = cart.items.map((item) => ({
@@ -108,7 +106,9 @@ export const PosPage = () => {
     } finally {
       setCheckingOut(false);
     }
-  };
+  }, [cart, discount, addToast, queryClient, t]);
+
+  const handleCloseCart = useCallback(() => setIsCartOpen(false), []);
 
   if (isLoading) {
     return (
@@ -118,35 +118,39 @@ export const PosPage = () => {
         initial="initial"
         animate="animate"
       >
+        {/* Ambient */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: -1 }}>
-          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[var(--clr-gold)]/[0.04] blur-[120px]" />
-          <div className="absolute bottom-[-15%] right-[-5%] w-[400px] h-[400px] rounded-full bg-blue-500/[0.03] blur-[100px]" />
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[var(--clr-gold)]/[0.03] blur-[140px]" />
+          <div className="absolute bottom-[-15%] right-[-5%] w-[450px] h-[450px] rounded-full bg-brand-gold/[0.02] blur-[120px]" />
         </div>
 
         <div className="px-5 md:px-8 lg:px-12 pt-10 md:pt-16 pb-16 md:pb-24 max-w-[1600px] mx-auto">
           <motion.div variants={fadeSlideUp} className="mb-10 md:mb-14">
-            <Skeleton className="h-5 w-32 rounded-full mb-4" />
-            <Skeleton className="h-10 w-64 rounded-2xl mb-3" />
-            <Skeleton className="h-4 w-80 rounded-xl" />
+            <Skeleton className="h-5 w-28 rounded-full mb-5" />
+            <Skeleton className="h-11 w-72 rounded-2xl mb-3" />
+            <Skeleton className="h-4 w-64 rounded-xl" />
           </motion.div>
 
           <motion.div variants={fadeSlideUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-10 md:mb-14">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-24 md:h-28 rounded-2xl bg-brand-dark/60 border border-brand-border/30 p-4 md:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                <Skeleton className="h-4 w-20 rounded-lg mb-3" />
-                <Skeleton className="h-7 w-16 rounded-xl" />
+              <div key={i} className="h-28 md:h-32 rounded-2xl bg-brand-dark/60 border border-brand-border/20 p-5 backdrop-blur-sm">
+                <Skeleton className="h-4 w-20 rounded-lg mb-4" />
+                <Skeleton className="h-8 w-16 rounded-xl" />
               </div>
             ))}
           </motion.div>
 
           <motion.div variants={fadeSlideUp}>
-            <Skeleton className="h-12 w-full rounded-2xl mb-6" />
+            <Skeleton className="h-14 w-full rounded-2xl mb-8" />
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-40 md:h-48 rounded-2xl bg-brand-dark/60 border border-brand-border/30 p-4 md:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                  <Skeleton className="h-4 w-24 rounded-lg mb-3" />
-                  <Skeleton className="h-3 w-16 rounded-lg mb-4" />
-                  <Skeleton className="h-6 w-20 rounded-xl" />
+                <div key={i} className="rounded-2xl bg-brand-dark/60 border border-brand-border/20 overflow-hidden">
+                  <Skeleton className="h-28 md:h-32 w-full rounded-none" />
+                  <div className="p-4 md:p-5 space-y-3">
+                    <Skeleton className="h-4 w-24 rounded-lg" />
+                    <Skeleton className="h-3 w-16 rounded-lg" />
+                    <Skeleton className="h-6 w-20 rounded-xl" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -172,22 +176,23 @@ export const PosPage = () => {
   return (
     <>
       <div className="min-h-[100dvh] relative overflow-hidden">
-        {/* Ambient background */}
+        {/* Ambient background — subtle gold glow */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: -1 }}>
-          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[var(--clr-gold)]/[0.04] blur-[120px]" />
-          <div className="absolute bottom-[-15%] right-[-5%] w-[400px] h-[400px] rounded-full bg-blue-500/[0.03] blur-[100px]" />
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[var(--clr-gold)]/[0.03] blur-[140px]" />
+          <div className="absolute bottom-[-15%] right-[-5%] w-[450px] h-[450px] rounded-full bg-brand-gold/[0.02] blur-[120px]" />
+          <div className="absolute top-[40%] left-[50%] w-[300px] h-[300px] rounded-full bg-brand-gold/[0.015] blur-[100px] -translate-x-1/2 -translate-y-1/2" />
         </div>
 
         <div className="px-5 md:px-8 lg:px-12 pt-10 md:pt-16 pb-16 md:pb-24 max-w-[1600px] mx-auto">
-          {/* Hero Header */}
+          {/* Hero Header — Refined */}
           <motion.div
             variants={stagger}
             initial="initial"
             animate="animate"
             className="mb-10 md:mb-14"
           >
-            <motion.div variants={fadeSlideUp} className="flex items-center gap-2 mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--clr-gold)]/10 border border-[var(--clr-gold)]/20 text-[var(--clr-gold)] text-[11px] font-medium tracking-wide">
+            <motion.div variants={fadeSlideUp} className="flex items-center gap-2 mb-5">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--clr-gold)]/[0.08] border border-[var(--clr-gold)]/15 text-[var(--clr-gold)] text-[11px] font-semibold tracking-wider uppercase">
                 <Sparkle size={12} weight="fill" />
                 {t('pos.title')}
               </span>
@@ -195,21 +200,21 @@ export const PosPage = () => {
 
             <motion.h1
               variants={fadeSlideUp}
-              className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-brand-light tracking-tight leading-[1.15] mb-3"
+              className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold tracking-tight leading-[1.1] mb-3"
               style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}
             >
-              {t('pos.title')}
+              <span className="text-brand-light">{t('pos.title')}</span>
             </motion.h1>
 
             <motion.p
               variants={fadeSlideUp}
-              className="text-sm md:text-base text-brand-muted/60 max-w-lg leading-relaxed"
+              className="text-sm md:text-[15px] text-brand-muted/50 max-w-md leading-relaxed"
             >
               {t('pos.searchProducts')}
             </motion.p>
           </motion.div>
 
-          {/* Bento Metrics */}
+          {/* Bento Metrics — Premium Glass */}
           <motion.div
             variants={stagger}
             initial="initial"
@@ -222,57 +227,84 @@ export const PosPage = () => {
                 value: metrics.totalItems.toLocaleString(),
                 subtext: t('pos.stock', { count: metrics.totalStock }),
                 icon: Package,
-                accentColor: 'amber',
+                accent: 'gold' as const,
               },
               {
                 label: t('pos.totalQuantity'),
                 value: metrics.totalStock.toLocaleString(),
                 subtext: t('inventory.inStock', { defaultValue: 'in stock' }),
-                icon: ListNumbers,
-                accentColor: 'blue',
+                icon: Hash,
+                accent: 'blue' as const,
               },
               {
                 label: t('pos.cartItems'),
                 value: metrics.cartCount.toLocaleString(),
                 subtext: metrics.cartCount === 0 ? t('pos.cartEmpty') : `${metrics.cartCount} ${metrics.cartCount === 1 ? t('pos.item') : t('pos.items')}`,
-                icon: FolderOpen,
-                accentColor: 'purple',
+                icon: Basket,
+                accent: 'purple' as const,
               },
               {
                 label: t('pos.cartTotal'),
                 value: `$${metrics.cartValue.toFixed(2)}`,
                 subtext: t('pos.usdTotal'),
                 icon: CurrencyDollar,
-                accentColor: 'emerald',
+                accent: 'emerald' as const,
               },
             ].map((m, i) => {
-              const accentStyles = {
-                amber: { bg: 'from-amber-500/10 to-orange-500/5', icon: 'text-amber-400', dot: 'bg-amber-400' },
-                blue: { bg: 'from-blue-500/10 to-cyan-500/5', icon: 'text-blue-400', dot: 'bg-blue-400' },
-                purple: { bg: 'from-purple-500/10 to-pink-500/5', icon: 'text-purple-400', dot: 'bg-purple-400' },
-                emerald: { bg: 'from-emerald-500/10 to-teal-500/5', icon: 'text-emerald-400', dot: 'bg-emerald-400' },
+              const accents = {
+                gold: {
+                  bg: 'bg-gradient-to-br from-[var(--clr-gold)]/[0.06] to-[var(--clr-gold)]/[0.02]',
+                  icon: 'text-[var(--clr-gold)]/70',
+                  iconBg: 'bg-[var(--clr-gold)]/[0.08]',
+                  border: 'border-[var(--clr-gold)]/10',
+                  glow: 'group-hover:shadow-[0_0_30px_-8px_var(--clr-gold)]/10',
+                },
+                blue: {
+                  bg: 'bg-gradient-to-br from-blue-500/[0.06] to-blue-500/[0.02]',
+                  icon: 'text-blue-400/70',
+                  iconBg: 'bg-blue-500/[0.08]',
+                  border: 'border-blue-500/10',
+                  glow: 'group-hover:shadow-[0_0_30px_-8px_rgba(59,130,246,0.1)]',
+                },
+                purple: {
+                  bg: 'bg-gradient-to-br from-purple-500/[0.06] to-purple-500/[0.02]',
+                  icon: 'text-purple-400/70',
+                  iconBg: 'bg-purple-500/[0.08]',
+                  border: 'border-purple-500/10',
+                  glow: 'group-hover:shadow-[0_0_30px_-8px_rgba(168,85,247,0.1)]',
+                },
+                emerald: {
+                  bg: 'bg-gradient-to-br from-emerald-500/[0.06] to-emerald-500/[0.02]',
+                  icon: 'text-emerald-400/70',
+                  iconBg: 'bg-emerald-500/[0.08]',
+                  border: 'border-emerald-500/10',
+                  glow: 'group-hover:shadow-[0_0_30px_-8px_rgba(16,185,129,0.1)]',
+                },
               };
-              const style = accentStyles[m.accentColor as keyof typeof accentStyles];
+              const s = accents[m.accent];
 
               return (
                 <motion.div
                   key={i}
                   variants={scaleIn}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className={`relative rounded-2xl bg-gradient-to-br ${style.bg} border border-brand-border/20 p-4 md:p-5 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]`}
+                  whileHover={{ y: -4, transition: { duration: 0.25, ease: easeOutExpo } }}
+                  className={`group relative rounded-2xl ${s.bg} border ${s.border} p-5 md:p-6 overflow-hidden backdrop-blur-sm transition-shadow duration-300 ${s.glow}`}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="text-[10px] md:text-[11px] font-semibold text-brand-muted/50 uppercase tracking-wider">
+                  {/* Subtle inner glow */}
+                  <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]" />
+
+                  <div className="relative flex items-start justify-between mb-4">
+                    <span className="text-[10px] md:text-[11px] font-semibold text-brand-muted/40 uppercase tracking-widest">
                       {m.label}
                     </span>
-                    <div className={`w-9 h-9 rounded-xl bg-brand-dark/40 backdrop-blur-sm flex items-center justify-center ${style.icon}`}>
-                      <m.icon size={18} weight="duotone" />
+                    <div className={`w-10 h-10 rounded-xl ${s.iconBg} flex items-center justify-center`}>
+                      <m.icon size={18} weight="duotone" className={s.icon} />
                     </div>
                   </div>
-                  <p className="text-xl md:text-2xl font-bold text-brand-light font-mono tracking-tight mb-1">
+                  <p className="relative text-2xl md:text-3xl font-bold text-brand-light font-mono tracking-tight leading-none mb-1.5">
                     {m.value}
                   </p>
-                  <p className="text-[10px] md:text-[11px] text-brand-muted/40 truncate">
+                  <p className="relative text-[10px] md:text-[11px] text-brand-muted/35 truncate">
                     {m.subtext}
                   </p>
                 </motion.div>
@@ -296,28 +328,30 @@ export const PosPage = () => {
         </div>
       </div>
 
-      {/* Floating Cart FAB */}
+      {/* Floating Cart FAB — Premium */}
       <AnimatePresence>
         {totalQty > 0 && (
           <motion.button
             key="pos-fab"
             onClick={() => setIsCartOpen(true)}
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            initial={{ opacity: 0, scale: 0.8, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            transition={{ duration: 0.35, ease: easeOutExpo }}
-            className="fixed bottom-6 right-6 z-40 h-14 rounded-2xl bg-[var(--clr-gold)] text-brand-black shadow-[0_4px_24px_-4px_rgba(212,175,55,0.4)] flex items-center gap-2.5 px-5 transition-all duration-300 ease-out-expo active:scale-[0.92] hover:shadow-[0_6px_32px_-4px_rgba(212,175,55,0.55)] hover:-translate-y-0.5"
+            exit={{ opacity: 0, scale: 0.8, y: 24 }}
+            transition={{ duration: 0.4, ease: easeOutExpo }}
+            className="fixed bottom-6 right-6 z-40 h-14 rounded-2xl bg-[var(--clr-gold)] text-brand-black shadow-[0_4px_32px_-4px_rgba(201,160,60,0.35)] flex items-center gap-2.5 px-5 transition-all duration-300 active:scale-[0.94] hover:shadow-[0_8px_40px_-4px_rgba(201,160,60,0.5)] hover:-translate-y-0.5 cursor-pointer"
           >
-            <ShoppingCart size={22} weight="bold" />
-            <span className="text-sm font-semibold tabular-nums">${cart.totalUsd.toFixed(2)}</span>
-            <span className="min-w-[22px] h-[22px] rounded-full bg-brand-black/20 text-brand-black text-[10px] font-bold font-mono flex items-center justify-center px-1 leading-none">
+            <ShoppingCart size={20} weight="bold" />
+            <span className="text-sm font-bold tabular-nums" style={{ fontFamily: "'Satoshi', 'Outfit', sans-serif" }}>
+              ${cart.totalUsd.toFixed(2)}
+            </span>
+            <span className="min-w-[24px] h-[24px] rounded-full bg-brand-black/15 text-brand-black text-[10px] font-bold font-mono flex items-center justify-center px-1.5 leading-none tabular-nums">
               {totalQty}
             </span>
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Cart Drawer */}
+      {/* Cart Drawer — Premium Glass */}
       <AnimatePresence>
         {isCartOpen && (
           <motion.div
@@ -328,17 +362,21 @@ export const PosPage = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setIsCartOpen(false)}
+            <motion.div
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              onClick={handleCloseCart}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             />
             <motion.div
-              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-brand-dark/95 backdrop-blur-sm border-l border-brand-border/30 shadow-[var(--shadow-floating)] flex flex-col overflow-hidden"
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-brand-dark/95 backdrop-blur-2xl border-l border-brand-border/20 shadow-[-8px_0_40px_-12px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ duration: 0.35, ease: easeOutExpo }}
+              transition={{ duration: 0.4, ease: easeOutExpo }}
             >
+              {/* Mobile drag handle */}
               <div className="sm:hidden w-10 h-1 rounded-full bg-brand-muted/15 mx-auto mt-3 shrink-0" />
               <div className="flex-1 overflow-hidden">
                 <CartPanel
@@ -353,7 +391,7 @@ export const PosPage = () => {
                   loading={checkingOut}
                   discount={discount}
                   onDiscountChange={setDiscount}
-                  onClose={() => setIsCartOpen(false)}
+                  onClose={handleCloseCart}
                 />
               </div>
             </motion.div>

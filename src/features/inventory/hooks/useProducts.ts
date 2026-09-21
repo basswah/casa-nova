@@ -13,6 +13,7 @@ export const useProducts = () => {
           id,
           name,
           sku,
+          image_url,
           category_id,
           price_usd,
           price_syp,

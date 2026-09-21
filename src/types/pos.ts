@@ -2,6 +2,7 @@ export interface PosProduct {
   id: string;
   name: string;
   sku: string | null;
+  image_url?: string | null;
   price_usd: number;
   price_syp: number;
   quantity: number;
