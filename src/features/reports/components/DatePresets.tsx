@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { CalendarDots, CaretDown, ArrowRight, X, Check } from '@phosphor-icons/react';
 import { useAvailableMonths } from '@/features/reports/hooks/useReports';
 import type { DateRange } from '@/types/reports';
@@ -41,34 +41,32 @@ const MONTHS_KEYS = [
   'reports.september', 'reports.october', 'reports.november', 'reports.december',
 ];
 
-const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 const spring = { type: 'spring' as const, stiffness: 120, damping: 22, mass: 0.8 };
 const quickExit = { duration: 0.18, ease: [0.4, 0, 1, 1] as [number, number, number, number] };
 
-const backdropVar = {
+const backdropVar: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.2 } },
   exit: { opacity: 0, transition: quickExit },
 };
 
-const sheetVar = {
+const sheetVar: Variants = {
   hidden: { y: '100%', opacity: 0.5 },
   visible: { y: 0, opacity: 1, transition: spring },
-  exit: { y: '100%', opacity: 0, transition: { duration: 0.22, ease: [0.4, 0, 1, 1] } },
+  exit: { y: '100%', opacity: 0, transition: { duration: 0.22, ease: [0.4, 0, 1, 1] as [number, number, number, number] } },
 };
 
-const dropdownVar = {
+const dropdownVar: Variants = {
   hidden: { opacity: 0, y: -8, scale: 0.97 },
   visible: { opacity: 1, y: 0, scale: 1, transition: spring },
   exit: { opacity: 0, y: -6, scale: 0.98, transition: quickExit },
 };
 
-const staggerItem = {
+const staggerItem: Variants = {
   hidden: { opacity: 0, y: 6 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.03, duration: 0.25, ease: [0.16, 1, 0.3, 1] },
+    transition: { delay: i * 0.03, duration: 0.25, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
   }),
 };
 

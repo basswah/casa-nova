@@ -20,7 +20,7 @@ interface StatCardProps {
   icon: React.ReactNode;
   label: string;
   value: string;
-  accent?: 'gold' | 'green' | 'red' | 'default';
+  accent?: 'gold' | 'green' | 'danger' | 'success' | 'default';
 }
 
 const StatCard = ({ icon, label, value, accent = 'gold' }: StatCardProps) => {
