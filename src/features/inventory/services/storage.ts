@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 
 const BUCKET = 'product-images';
 const MAX_DIMENSION = 1200;
-const WEBP_QUALITY = 0.8;
+const QUALITY = 0.8;
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -20,7 +20,11 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-async function compressImage(file: File): Promise<Blob> {
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function compressImage(file: File): Promise<{ blob: Blob; ext: string; mime: string }> {
   const img = await loadImage(file);
 
   let { width, height } = img;
@@ -34,41 +38,32 @@ async function compressImage(file: File): Promise<Blob> {
 
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas not supported');
-
   ctx.drawImage(img, 0, 0, width, height);
 
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          // WebP fallback to JPEG
-          canvas.toBlob(
-            (jpegBlob) => {
-              if (jpegBlob) resolve(jpegBlob);
-              else reject(new Error('Image compression failed'));
-            },
-            'image/jpeg',
-            WEBP_QUALITY,
-          );
-          return;
-        }
-        resolve(blob);
-      },
-      'image/webp',
-      WEBP_QUALITY,
-    );
-  });
+  // Try WebP first
+  const webpBlob = await canvasToBlob(canvas, 'image/webp', QUALITY);
+  if (webpBlob && webpBlob.type === 'image/webp') {
+    return { blob: webpBlob, ext: 'webp', mime: 'image/webp' };
+  }
+
+  // Fallback to JPEG
+  const jpegBlob = await canvasToBlob(canvas, 'image/jpeg', QUALITY);
+  if (jpegBlob) {
+    return { blob: jpegBlob, ext: 'jpg', mime: 'image/jpeg' };
+  }
+
+  throw new Error('Image compression failed');
 }
 
 export async function uploadProductImage(file: File): Promise<string> {
-  const compressed = await compressImage(file);
-  const path = `${crypto.randomUUID()}.webp`;
+  const { blob, ext, mime } = await compressImage(file);
+  const path = `${crypto.randomUUID()}.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(path, compressed, {
+    .upload(path, blob, {
       upsert: false,
-      contentType: 'image/webp',
+      contentType: mime,
     });
 
   if (uploadError) {
