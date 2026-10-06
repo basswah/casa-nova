@@ -49,6 +49,7 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const {
     register,
@@ -68,6 +69,7 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
     setSelectedFile(null);
     setImagePreview(product?.image_url ?? null);
     setIsUploading(false);
+    setLocalError(null);
     reset(
       product
         ? {
@@ -107,6 +109,7 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
 
   const handleFormSubmit = async (data: ProductFormData) => {
     setIsUploading(true);
+    setLocalError(null);
     try {
       let imageUrl = product?.image_url ?? null;
 
@@ -130,6 +133,10 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
         setSelectedFile(null);
         setImagePreview(null);
       }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setLocalError(msg);
+      throw err;
     } finally {
       setIsUploading(false);
     }
@@ -186,14 +193,14 @@ export const ProductForm = ({ open, onClose, product, onSubmit, loading, error }
 
             {/* Form Content */}
             <div className="px-6 pb-6">
-              {error && (
+              {(error || localError) && (
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 p-3.5 bg-red-950/30 border border-red-800/40 rounded-xl flex items-center gap-3"
                 >
                   <WarningCircle size={18} weight="duotone" className="text-red-400 shrink-0" />
-                  <span className="text-sm text-red-300">{error}</span>
+                  <span className="text-sm text-red-300">{localError || error}</span>
                 </motion.div>
               )}
 
